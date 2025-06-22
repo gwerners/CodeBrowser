@@ -1,0 +1,24 @@
+{
+   "enabled":true,
+   "maxResults":10,
+   "minChars":0,
+   "allowedProjects":null,
+   "maxProjects":32767,
+   "allowedFields":[
+      "defs",
+      "path",
+      "hist",
+      "refs",
+      "type",
+      "full"
+   ],
+   "allowComplexQueries":true,
+   "allowMostPopular":true,
+   "showScores":false,
+   "showProjects":true,
+   "showTime":false,
+   "rebuildCronConfig":"0 0 * * *",
+   "buildTerminationTime":1800,
+   "timeThreshold":2000,
+   "rebuildThreadPoolSizeInNcpuPercent":80
+}

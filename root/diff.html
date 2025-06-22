@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" class="diff">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="robots" content="noindex,nofollow">
+      <!-- Load Monaco Editor CSS -->
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/monaco-editor/min/vs/editor/editor.main.css">
+      <!-- Load Monaco Editor JavaScript -->
+      <script src="https://cdn.jsdelivr.net/npm/monaco-editor@latest/min/vs/loader.js"></script>
+      <style>
+          body, html {
+              margin: 0;
+              padding: 0;
+              height: 100%;
+              overflow: hidden;
+          }
+          #editorContainer {
+              height: 100%;
+              width: 100%;
+          }
+      </style>
+   </head>
+   <body>
+    <div id="editorContainer"></div>
+    <script>
+        function loadDiff(originalContent, modifiedContent, lang) {
+          // Initialize Monaco Editor
+          require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@latest/min/vs' }});
+          require(['vs/editor/editor.main'], function() {
+              var diffEditor;
+              // Create left and right editor models
+              var originalModel = monaco.editor.createModel(originalContent,lang);
+              var modifiedModel = monaco.editor.createModel(modifiedContent,lang);
+
+              // Create diff editor
+              diffEditor = monaco.editor.createDiffEditor(document.getElementById('editorContainer'), {
+                  language: lang,
+                  theme: 'vs-dark',
+                  readOnly: true
+              });
+              diffEditor.setModel({
+                  original: originalModel,
+                  modified: modifiedModel
+              });
+          });
+        }
+<!--%lua%
+print("        var original = '" .. serverUrl .. "/bin?project=" .. project .. "&path=" .. path .. "&hash=" .. r1 .. "';\n")
+print("        var modified = '" .. serverUrl .. "/bin?project=" .. project .. "&path=" .. path .. "&hash=" .. r2 .. "';\n")
+%lua%-->
+        function fetchModified(content, lang) {
+          fetch(modified)
+            .then(response => response.text())
+            .then(data => loadDiff(content,data,lang))
+            .catch(error => console.error('Error fetching C++ content:', error));
+        }        
+        fetch(original)
+            .then(response => response.text())
+            .then(data => fetchModified(data,'cpp'))
+            .catch(error => console.error('Error fetching C++ content:', error));
+    </script>
+   </body>
+</html>
+

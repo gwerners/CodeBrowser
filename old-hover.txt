@@ -1,0 +1,50 @@
+
+        async function fetchHoverInfo(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch hover information');
+                }
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error(error);
+                return null;
+            }
+        }
+
+                // Define your hover provider
+                monaco.languages.registerHoverProvider('cpp', {
+                    provideHover: async (model, position) => {
+                        const lineNumber = position.lineNumber;
+                        const column = position.column;
+                        const linePos =  model.getPositionAt(model.getOffsetAt(position));
+                        console.log('linePos ' + linePos);
+                        // Extract the word at the hovered position
+<!--%lua%
+print("                        const hoverInfoUrl = `" .. serverUrl .. "/hover?project=" .. project .. "&path=" .. path .. "&line=${lineNumber}&column=${column}`;\n")
+%lua%-->
+                        console.log(position);
+                        const word = model.getWordAtPosition(position);
+                        console.log(word);
+                        if (!word) {
+                           console.log('empty word');
+                            return null;
+                        }
+                        console.log('hover ' +  hoverInfoUrl);
+                        // Fetch hover information from the server
+                        const hoverInfo = await fetchHoverInfo(hoverInfoUrl);
+                        if (!hoverInfo) {
+                             console.log('hoverInfo empty');
+                            return null;
+                        }
+                        // Construct the hover tooltip with the fetched information
+                        console.log('hoverInfo ' + hoverInfo);
+                        return {
+                            contents: [
+                                { value: hoverInfo.description }
+                            ]
+                        };
+                    }
+                });
+
