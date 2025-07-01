@@ -14,27 +14,6 @@ print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/ut
 print("      <link rel=\"search\" href=\"" .. serverUrl .. "/opensearch\" type=\"application/opensearchdescription+xml\" title=\"Search for current project(s)\">\n")
 %lua%-->
    </head>
-   <style>
-   /*https://www.shecodes.io/palettes/1313*/
-   .selected {
-      background-color: #ececec;
-   }
-   </style>
-   <script>
-  function changeSelectColor(select) {
-    for (let i = 0; i < select.options.length; i++) {
-      select.options[i].classList.remove('selected');
-    }
-    select.options[select.selectedIndex].classList.add('selected');
-  }
-
-  window.onload = () => {
-    const select = document.getElementById('project');
-    if (select.selectedIndex >= 0) {
-      select.options[select.selectedIndex].classList.add('selected');
-    }
-  };
-   </script>
    <body>
       <div id="page">
          <div id="whole_header">
@@ -80,7 +59,7 @@ print("                              <td><input tabindex=\"1\" class=\"q\" name=
                   </div>
                   <div id="ptbl">
                      <p><label for="project">In Project(s)</label> <button tabindex="6" type="button" onclick="javascript: selectAllProjects(); return false;">select all</button>&nbsp;<button tabindex="7" type="button" onclick="javascript: invertAllProjects(); return false;">invert selection</button> </p>
-                     <select tabindex="8" ondblclick="javascript: goFirstProject();" onkeyup="javascript: checkEnter(event);" class="q" id="project" name="project" size="4" style="background-color: #9fd3c7;" onchange="changeSelectColor(this)">
+                     <select tabindex="8" ondblclick="javascript: goFirstProject();" onkeyup="javascript: checkEnter(event);" id="project" name="project" size="4" style="background-color: #9fd3c7;" >
 <!--%lua%
 for k, v in pairs(projects) do 
   -- <option value="DragonFly">DragonFly</option>
