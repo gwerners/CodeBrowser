@@ -80,7 +80,7 @@ print("                              <td><input tabindex=\"1\" class=\"q\" name=
                   </div>
                   <div id="ptbl">
                      <p><label for="project">In Project(s)</label> <button tabindex="6" type="button" onclick="javascript: selectAllProjects(); return false;">select all</button>&nbsp;<button tabindex="7" type="button" onclick="javascript: invertAllProjects(); return false;">invert selection</button> </p>
-                     <select tabindex="8" ondblclick="javascript: goFirstProject();" onkeyup="javascript: checkEnter(event);" class="q" id="project" name="project" multiple="multiple" size="4" style="background-color: #9fd3c7;" onchange="changeSelectColor(this)">
+                     <select tabindex="8" ondblclick="javascript: goFirstProject();" onkeyup="javascript: checkEnter(event);" class="q" id="project" name="project" size="4" style="background-color: #9fd3c7;" onchange="changeSelectColor(this)">
 <!--%lua%
 for k, v in pairs(projects) do 
   -- <option value="DragonFly">DragonFly</option>
