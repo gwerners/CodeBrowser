@@ -8,7 +8,6 @@ constexpr const char* CONFIG_JSON = R"json(
     "url":"http://localhost:3000",
     "port":3000,
     "root": "/home/gwerners/projects/CodeBrowser/root",
-    "files":"/home/gwerners/projects/CodeBrowser/root/files",
     "folders": "folders.html",
     "editor": "editor.html",
     "index": "index.html",
@@ -19,19 +18,9 @@ constexpr const char* CONFIG_JSON = R"json(
     "annotate": "annotate.html",
     "projects": [
         {
-            "name":"bgfx",
-            "source":"/home/gwerners/projects/three.bgfx/bgfx",
-            "index":"/home/gwerners/projects/CodeWayfinder/index/bgfx-index"
-        },
-        {
-            "name":"bx",
-            "source":"/home/gwerners/projects/three.bgfx/bx",
-            "index":"/home/gwerners/projects/CodeWayfinder/index/bx-index"
-        },
-        {
-            "name":"bimg",
-            "source":"/home/gwerners/projects/three.bgfx/bimg",
-            "index":"/home/gwerners/projects/CodeWayfinder/index/bimg-index"
+            "name":"CodeBrowser",
+            "source":"/home/gwerners/projects/CodeBrowser",
+            "index":"/home/gwerners/projects/CodeWayfinder/index/CodeBrowser-index"
         },
         {
             "name":"three.js",

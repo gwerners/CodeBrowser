@@ -39,9 +39,7 @@ HEADERS += \
     work/LSMessage.h \
     work/PipeAdapter.h \
     work/PipeCommand.h \
-    work/SearchFile.h \
-    work/SearchInfo.h \
-    work/SearchLine.h \
+    work/Search.h \
     work/Server.h \
     work/Task.h \
     work/Utils.h \

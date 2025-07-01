@@ -12,8 +12,8 @@ print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/jq
 print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/utils.js\"></script>\n")
 --print("      <title>" .. pageTitle .. ": /" .. project .. "/</title>\n")
 print("      <link rel=\"search\" href=\"" .. serverUrl .. "/opensearch\" type=\"application/opensearchdescription+xml\" title=\"Search for current project(s)\">\n")
+print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/monaco/min/vs/loader.js\"></script>\n")
 %lua%-->
-    <script src="https://unpkg.com/monaco-editor@latest/min/vs/loader.js"></script>
     <style>
         #container {
             width: 100%;
@@ -107,7 +107,9 @@ end
             }
         }
         function loadCppContent(content, lang) {
-            require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@latest/min/vs' }});
+<!--%lua%
+print("            require.config({ paths: { 'vs': '" .. serverUrl .. "/monaco/min/vs' }});\n");
+%lua%-->
             require(['vs/editor/editor.main'], (monaco) => {
                 const editor = monaco.editor.create(editorContainer, {
                     value: content,

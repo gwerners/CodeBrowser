@@ -102,9 +102,7 @@ set(HEADERS
   Git.h
   FullTextIndexer.h
   FullTextSearcher.h
-  SearchFile.h
-  SearchInfo.h
-  SearchLine.h
+  Search.h
   PipeAdapter.h)
 
 include_directories(${CMAKE_SOURCE_DIR})

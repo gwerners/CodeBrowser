@@ -102,7 +102,6 @@ function getAll {
   #get sol2 https://github.com/ThePhD/sol2.git
   get lucy-clownfish https://github.com/apache/lucy-clownfish.git
   get lucy https://github.com/apache/lucy.git
-
  
 }
 function buildClownfish {
@@ -141,11 +140,29 @@ function buildLucy {
   fi
 }
 
+function buildMonaco {
+  #you don't need to build monaco since min is already installed in root directory...
+  if [ -f "root/monaco/min/vs/editor/editor.main.js" ]; then
+    return
+  fi
+  get monaco-editor git@github.com:gwerners/monaco-editor.git
+  if [ -d "monaco-editor" ]; then
+    pushd monaco-editor
+      npm install monaco-editor
+      if [ -d "root/monaco/min" ]; then
+        rm -rf "root/monaco/min"
+        cp -r "monaco-editor/node_modules/monaco-editor/min" "root/monaco/min"
+      fi
+    popd
+  fi
+  rm -rf monaco-editor
+}
 
 function build {
   buildClownfish
   buildLucy
-
+  #buildMonaco
+  
   safeMKDIR build
   pushd build
     cmake ..

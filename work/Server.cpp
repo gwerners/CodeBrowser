@@ -20,6 +20,24 @@
 /*
 Notes:
 
+css color template:
+https://www.shecodes.io/palettes/1313
+.first-color {
+  background: #ececec;
+}
+
+.second-color {
+  background: #9fd3c7;
+}
+
+.third-color {
+  background: #385170;
+}
+
+.fourth-color {
+  background: #142d4c;
+}
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 gamma ray
@@ -294,7 +312,6 @@ void Server::configure() {
   _url = data["url"];
   _port = data["port"];
   _htmlRoot = data["root"];
-  _files = data["files"];
   _folders = data["folders"];
   _editor = data["editor"];
   _index = data["index"];
@@ -516,15 +533,24 @@ void Server::run() {
 
   signal(SIGCHLD, sigchld_handler);
   crow::SimpleApp app;
+  // app.loglevel(crow::LogLevel::Debug);
 
   CROW_ROUTE(app, "/")
   ([&](const crow::request& req) {
     std::cout << "req.url " << req.url << std::endl;
     ServerPrivData priv;
     priv._filename = _htmlRoot + "/" + _index;
+    fmt::print(fmt::emphasis::bold | fg(fmt::color::blue), "serving {} \n",
+               priv._filename);
     return load(priv);
   });
-
+  CROW_ROUTE(app, "/favicon.ico")
+  ([&](crow::response& res) {
+    std::string root = _htmlRoot + "/files";
+    root += "/favicon.ico";
+    std::cout << "serving ico " << root << std::endl;
+    serveFile(root, res);
+  });
   CROW_ROUTE(app, "/folders")
   ([&](const crow::request& req) {
     std::string body = DEFAULT_BODY;
@@ -541,14 +567,32 @@ void Server::run() {
     fillVariables(_projects, req, priv);
     priv._filename = _htmlRoot + "/" + _editor;
     body = load(priv);
+    fmt::print(fmt::emphasis::bold | fg(fmt::color::red), "serving {} \n",
+               priv._filename);
     return crow::response{body};
   });
 
+  CROW_ROUTE(app, "/files/<path>")
+      .methods("GET"_method)([&](crow::response& res, std::string path) {
+        std::string root = _htmlRoot;
+        root += "/files/" + path;
+        fmt::print(fmt::emphasis::bold | fg(fmt::color::yellow),
+                   "file serving {} \n", root);
+        serveFile(root, res);
+      });
+  CROW_ROUTE(app, "/monaco/<path>")
+      .methods("GET"_method)([&](crow::response& res, std::string path) {
+        std::string root = _htmlRoot;
+        root += "/monaco/" + path;
+        fmt::print(fmt::emphasis::bold | fg(fmt::color::yellow),
+                   "file serving {} \n", root);
+        serveFile(root, res);
+      });
   CROW_ROUTE(app, "/bin")
   ([&](const crow::request& req) {
     ServerPrivData priv;
     fillVariables(_projects, req, priv);
-    // std::cout << "pwd " << std::filesystem::current_path() << std::endl;
+    std::cout << "pwd " << std::filesystem::current_path() << std::endl;
     std::string content;
     std::string::size_type idx = priv._root.rfind('.');
     std::string extension;
@@ -675,21 +719,6 @@ void Server::run() {
       priv._filename = _htmlRoot + "/" + _historyFile;
     }
     return crow::response{load(priv)};
-  });
-  CROW_ROUTE(app, "/files/<string>")
-      .methods("GET"_method)([&](crow::response& res, std::string filename) {
-        std::string root = _files;
-        root += "/" + filename;
-        std::cout << "serving " << root << std::endl;
-        serveFile(root, res);
-      });
-
-  CROW_ROUTE(app, "/favicon.ico")
-  ([&](crow::response& res) {
-    std::string root = _files;
-    root += "/favicon.ico";
-    std::cout << "serving ico " << root << std::endl;
-    serveFile(root, res);
   });
 
   CROW_ROUTE(app, "/identifier")

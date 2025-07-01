@@ -4,7 +4,7 @@
 #include <set>
 #include <string>
 #include "FileInfo.h"
-#include "SearchInfo.h"
+#include "Search.h"
 
 #define SOL_USE_MINILUA_HPP_I_ SOL_ON
 #define SOL_USING_MINILUA_HPP_I_ SOL_ON
@@ -52,7 +52,6 @@ class Server {
   std::string _url;
   int _port;
   std::string _htmlRoot;
-  std::string _files;
   std::string _folders;
   std::string _editor;
   std::string _index;
