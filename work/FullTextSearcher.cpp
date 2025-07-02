@@ -92,4 +92,9 @@ std::vector<SearchResult> FullTextSearcher::search(const std::string& needle) {
 SearchResult::SearchResult(std::string _line,
                            std::string _url,
                            std::string _excerpt)
-    : line(_line), url(_url), excerpt(_excerpt) {}
+    : line(_line), url(_url), excerpt(_excerpt) {
+  excerpt.erase(std::remove(excerpt.begin(), excerpt.end(), '\n'),
+                excerpt.end());
+  excerpt.erase(std::remove(excerpt.begin(), excerpt.end(), '\\'),
+                excerpt.end());
+}

@@ -1,67 +1,50 @@
 <!DOCTYPE html>
-<html lang="en" class="history">
-   <head>
-      <meta name="robots" content="nofollow">
-      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="robots" content="nofollow">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>CodeBrowser Search</title>
 <!--%lua%
-print("      <link rel=\"stylesheet\" type=\"text/css\" href=\"" .. serverUrl .. "/files/jquery.tooltip.css\">\n")
-print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/jquery-1.4.4.min.js\"></script>\n")
-print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/jquery.tooltip-1.3.pack.js\"></script>\n")
-print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/utils.js\"></script>\n")
-print("      <link rel=\"stylesheet\" type=\"text/css\" media=\"all\" title=\"Default\" href=\"" .. serverUrl .. "/files/new-style.css\">\n")
+print("  <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/new_utils.js\"></script>\n")
+print("  <link rel=\"stylesheet\" type=\"text/css\" media=\"all\" title=\"Default\" href=\"" .. serverUrl .. "/files/new_style.css\">\n")
 %lua%-->
-   </head>
-    <script>
-    function clearForm() {
-      document.getElementById('full-search').value = '';
-      document.getElementById('regexp-filter').value = '';
-      document.getElementById('project-select').selectedIndex = -1;
-    }
-  </script>
-   <body>
 
- <!-- Link no topo -->
-  <div class="link-bar">
-    <a href="#"></a>
-  </div>
-
-  <!-- Linha laranja -->
-  <div class="top-line"></div>
-
-  <!-- Formulário -->
-  <form method="GET" action="/search">
-    <div class="container">
-      <!-- Lado esquerdo -->
-      <div class="left-side">
-        <div class="form-title">Search</div>
-        <div class="form-row">
-          <label for="full-search">Full Search:</label>
-          <input type="text" id="full-search" name="full_search">
+</head>
+<body>
+  <div id="page">
+    <div id="sbar">
+      <form id="sbox" action="search">
+        <div id="qtbl">
+          <table>
+            <tr><td><label for="s1">Full&nbsp;Search</label></td><td><input class="q" name="q" id="s1" tabindex="1"></td></tr>
+            <tr><td><label for="s2">RegExp</label></td><td><input class="q" name="r" id="s2" tabindex="2"></td></tr>
+          </table>
         </div>
-        <div class="form-row">
-          <label for="regexp-filter">Regexp filter:</label>
-          <input type="text" id="regexp-filter" name="regexp_filter">
-        </div>
-        <div class="button-row">
-          <button type="submit">Search</button>
-          <button type="button" onclick="clearForm()">Clear</button>
-        </div>
-      </div>
-
-      <!-- Lado direito -->
-      <div class="right-side">
-        <div class="form-title">In Project</div>
-        <select id="project" name="project" size="5" ondblclick="javascript: goFirstProject();">
+        <div id="ptbl">
+          <select size="4" class="q" id="project" name="project" ondblclick="javascript: goFirstProject();">
 <!--%lua%
 for k, v in pairs(projects) do 
-  print("                        <option value=\"" .. k .. "\" >" .. k .. "</option>\n")
+  print("            <option value=\"" .. k .. "\" >" .. k .. "</option>\n")
 end 
 %lua%-->
-        </select>
-      </div>
+          </select>
+        </div>
+        <p>
+          <input class="submit" type="submit" value="Search" tabindex="9">
+          <input class="submit" type="button" value="Clear" onclick="clearForm()" tabindex="10">
+          <!--button type="button" onclick="openHelp()" tabindex="11">Help</button-->
+        </p>
+      </form>
     </div>
-  </form>
+    <div id="results"></div>
+    <div id="footer">
+<!--%lua%
+print("      <p><a href=\"" .. githubUrl .. "\" title=\"Served by " .. serverName .. "\"><span id=\"fti\"></span></a></p>\n")
+print("      <p>Indexes created " .. indexCreationTime .. "</p>\n")
+%lua%-->
+    </div>
   </div>
- </body>
+</body>
 </html>
 

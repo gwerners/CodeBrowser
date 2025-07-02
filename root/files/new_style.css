@@ -1,0 +1,216 @@
+:root {
+  --bg: #ffffff;
+  --text: #000;
+  --highlight: #c5d5a9;
+  --alt-row: #e8e8f0;
+  --input-bg: #ffffff;
+  --input-border: #bbbbff;
+  --button-bg: #a3b8cb;
+  --button-border: #bbbbff;
+  --dir-bg: #c5d5a9;
+  --file-bg-odd: #ffffff;
+  --file-bg-even: #f4f4f4;
+  --header-bg: #c5d5a9;
+  --main-row: #ffffff;
+  --border: #ccc;
+  --font-family: "Liberation Sans", sans-serif;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-family);
+  margin: 1ex;
+}
+
+a {
+  text-decoration: none;
+  color: #2030A2;
+}
+a:visited, a:hover {
+  color: #202062;
+  text-decoration: underline;
+}
+
+input, button {
+  border: 1px solid var(--button-border);
+  border-radius: 0.75ex;
+  background-color: var(--button-bg);
+}
+
+input.q {
+  width: 100%;
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+}
+
+input.submit {
+  font-weight: bold;
+}
+
+#page {
+  padding: 1ex;
+}
+
+#sbar {
+  border-top: 4px solid #ffc726;
+  margin: 0;
+  padding-top: 1ex;
+  clear: both;
+}
+
+#qtbl, #ptbl {
+  display: inline-block;
+  vertical-align: top;
+}
+
+#qtbl td:first-child {
+  width: 10ex;
+  text-align: right;
+}
+
+#qtbl td:nth-child(2) {
+  width: 45ex;
+}
+
+#ptbl {
+  margin-left: 2em;
+}
+
+#ptbl button {
+  font-size: small;
+  margin-left: 1em;
+}
+
+#ptbl select {
+  width: 100%;
+}
+
+#results table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+#results .dir {
+  background-color: var(--dir-bg);
+}
+
+#results .dir td {
+  padding-left: 1em;
+}
+
+#results td.f {
+  width: 20ex;
+  padding: 0.5ex;
+  font-weight: bold;
+}
+
+#results .con {
+  font-size: small;
+}
+
+#results .con .l {
+  display: inline-block;
+  width: 6ex;
+  text-align: right;
+  padding-right: 1ex;
+  margin-right: 0.2em;
+  background-color: #dddddd;
+  color: #666;
+}
+
+.file-row:nth-of-type(odd) {
+  background-color: var(--file-bg-odd);
+}
+
+.file-row:nth-of-type(even) {
+  background-color: var(--file-bg-even);
+}
+
+#footer {
+  color: #777;
+  font-size: small;
+  margin-top: 1ex 0;
+  border-top: 1px solid #bba;
+  text-align: center;
+}
+
+#fti {
+  display: inline-block;
+  width: 208px;
+  height: 45px;
+  background: url('./img/combined.png') no-repeat -171px 0;
+  vertical-align: middle;
+}
+
+#Masthead {
+  font-size: medium;
+  margin-bottom: 1ex;
+}
+
+#bar {
+  border-top: 4px solid #ffc726;
+  margin: 0;
+  padding: 0.5ex 0;
+  clear: both;
+}
+
+#bar ul {
+  display: inline-block;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#bar li {
+  display: inline-block;
+  padding: 0 1ex;
+}
+
+#bar input.q {
+  width: 20ex;
+}
+
+table#revisions {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: small;
+}
+
+#revisions thead {
+  background-color: var(--header-bg);
+  color: black;
+}
+
+#revisions th, #revisions td {
+  padding: 0.5ex 1ex;
+  border: none;
+  vertical-align: top;
+}
+
+#revisions tbody tr:nth-child(odd) {
+  background-color: var(--main-row);
+}
+
+#revisions tbody tr:nth-child(even) {
+  background-color: var(--alt-row);
+}
+
+#revisions td:first-child {
+  font-family: monospace;
+  text-align: right;
+  white-space: nowrap;
+}
+
+#revisions td:nth-child(2), #revisions td:nth-child(3) {
+  text-align: center;
+  white-space: nowrap;
+}
+
+#revisions td:nth-child(4) {
+  padding: 0 1ex;
+}
+
+.rev-message-full {
+  margin: 0;
+}

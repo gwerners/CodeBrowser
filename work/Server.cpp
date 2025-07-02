@@ -293,14 +293,11 @@ static void fillVariables(projectMap& _projects,
   if (!priv._r1.empty() && !priv._r2.empty()) {
     priv._isDiff = true;
   }
-  if (req.url_params.get("full_search") != nullptr) {
-    priv._fullTextQuery = req.url_params.get("full_search");
-  }
   if (req.url_params.get("q") != nullptr) {
     priv._fullTextQuery = req.url_params.get("q");
   }
-  if (req.url_params.get("regexp_filter") != nullptr) {
-    priv._regexpTextQuery = req.url_params.get("regexp_filter");
+  if (req.url_params.get("r") != nullptr) {
+    priv._regexpTextQuery = req.url_params.get("r");
   }
 }
 Server::Server() {
@@ -491,9 +488,9 @@ std::string Server::load(const ServerPrivData& priv) {
     addSearchInfo(lua);
   }
   lua["fullTextQuery"] = priv._fullTextQuery;
-  if (!priv._regexpTextQuery.empty()) {
-    lua["regexpTextQuery"] = priv._regexpTextQuery;
-  }
+
+  lua["regexpTextQuery"] = priv._regexpTextQuery;
+
   return processLuaTemplate(htmlLuaTemplate, lua);
 }
 
@@ -1003,6 +1000,7 @@ void Server::run() {
     }
     priv._useGit = true;
     priv._filename = _htmlRoot + "/" + _search;
+    // std::cout << "page  " << load(priv) << std::endl;
     return crow::response{load(priv)};
   });
 

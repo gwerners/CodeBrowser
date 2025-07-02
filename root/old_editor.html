@@ -1,13 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>CodeBrowser Editor</title>
+<html lang="en" class="history">
+   <head>
+      <meta name="robots" content="nofollow">
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <!--%lua%
-print("  <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/new_utils.js\"></script>\n")
-print("  <link rel=\"stylesheet\" type=\"text/css\" media=\"all\" title=\"Default\" href=\"" .. serverUrl .. "/files/new_style.css\">\n")
-print("  <script type=\"text/javascript\" src=\"" .. serverUrl .. "/monaco/min/vs/loader.js\"></script>\n")
+print("      <link rel=\"stylesheet\" type=\"text/css\" media=\"all\" title=\"Default\" href=\"" .. serverUrl .. "/files/style.css\">\n")
+print("      <link rel=\"stylesheet\" type=\"text/css\" href=\"" .. serverUrl .. "/files/jquery.tooltip.css\">\n")
+print("      <link rel=\"search\" href=\"" .. serverUrl .. "/opensearch\" type=\"application/opensearchdescription+xml\" title=\"OpenGrok Search for current project(s)\">\n")
+print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/jquery-1.4.4.min.js\"></script>\n")
+print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/jquery.tooltip-1.3.pack.js\"></script>\n")
+print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/utils.js\"></script>\n")
+print("      <title>" .. pageTitle .. ": /" .. project .. "/</title>\n")
+print("      <link rel=\"search\" href=\"" .. serverUrl .. "/opensearch\" type=\"application/opensearchdescription+xml\" title=\"Search for current project(s)\">\n")
+print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/monaco/min/vs/loader.js\"></script>\n")
 %lua%-->
+
+
     <style>
         #container {
             width: 100%;
@@ -72,51 +80,64 @@ print("  <script type=\"text/javascript\" src=\"" .. serverUrl .. "/monaco/min/v
         }
 
     </style>
-</head>
-<body>
-  <div id="page">
-    <div id="whole_header">
-      <div id="Masthead">
+    
+   </head>
+   <body>
+      <script type="text/javascript">/* <![CDATA[ */
+         document.hash = 'null';document.rev = '';document.link = '/xref/OpenBSD/usr.sbin/smtpd/smtpd.c';document.annotate = false;
+         document.domReady.push(function() {domReadyMast();});
+         document.pageReady.push(function() { pageReadyMast();});
+         /* ]]> */
+      </script>
+      <div id="page">
+         <div id="whole_header">
+            <form action="/search">
+               <div id="header">
+ 
+               </div>
+               <div id="Masthead">
 <!--%lua%
 if (hash == nil or hash == '') then
-  print("        Contents of <a href=\"" .. serverUrl .. "/folders?project=" .. project .. "&path=" .. upperPath .. "\">" .. project .. "/" .. path .. "</a>\n")
+  print("                  <tt><a href=\"" .. serverUrl .. "/folders?project=" .. project .. "&path=" .. upperPath .. "\">" .. project .. "/" .. path .. "</a>/</tt>\n")
 else
-  print("        Contents of <a href=\"" .. serverUrl .. "/folders?project=" .. project .. "&path=" .. upperPath .. "\">" .. project .. "/" .. path .. "#" .. hash .. "</a>\n")
+  print("                  <tt><a href=\"" .. serverUrl .. "/folders?project=" .. project .. "&path=" .. upperPath .. "\">" .. project .. "/" .. path .. "#" .. hash .. "</a>/</tt>\n")
 end
 %lua%-->
-      </div>
-      <form action="#">
-        <div id="bar">
-          <ul>
+               </div>
+               <div id="bar">
+                  <ul>
 <!--%lua%
-print("            <li><a href=\"" .. serverUrl .. "\">Home</a></li>\n")
-print("            <li><a href=\"" .. serverUrl .. "/history?project=" .. project .. "&path=" .. path .. "\">History</a></li>\n")
+print("                     <li><a href=\"" .. serverUrl .. "\"><span id=\"home\"></span>Home</a></li>\n")
+print("                     <li><a href=\"" .. serverUrl .. "/history?project=" .. project .. "&path=" .. path .. "\">History</a></li>\n")
 if (hash == nil or hash == '') then
-  print("            <li><a href=\"" .. serverUrl .. "/annotate?project=" .. project .. "&path=" .. path .. "\">Annotate</a></li>\n")
+  print("                     <li><a href=\"" .. serverUrl .. "/annotate?project=" .. project .. "&path=" .. path .. "\">Annotate</a></li>\n")
 else
-  print("            <li><a href=\"" .. serverUrl .. "/annotate?project=" .. project .. "&path=" .. path .. "&hash=" .. hash .. "\">Annotate</a></li>\n")
+  print("                     <li><a href=\"" .. serverUrl .. "/annotate?project=" .. project .. "&path=" .. path .. "&hash=" .. hash .. "\">Annotate</a></li>\n")
 end
-%lua%-->  
-          </ul>
-        </div>
-      </form>
-    </div>
+%lua%-->   
+                     <li><a href="#" onclick="javascript:lsttoggle();return false;" title="Show or hide symbol list."><span id="defbox"></span>Navigate</a></li>
+                     <li><input type="text" id="search" name="q" class="q" value="">
+                        <input type="submit" value="Search" class="submit">
+                     </li>
+                     <li><input  value="Show" id="show-overlay-btn"></li>
+                     <li><input type="checkbox" name="path" value="/OpenBSD/usr.sbin/smtpd/" checked="checked"> only in <b>smtpd.c</b></li>
+                  </ul>
+                  <input type="hidden" name="project" value="OpenBSD">
+               </div>
+            </form>
+         </div>
+         <div id="content" style="top: 32073.5px; bottom: 0px;">
+            <script type="text/javascript">/* <![CDATA[ */
+               document.pageReady.push(function() { pageReadyList();});
+               /* ]]> */
+            </script>
 
 
+    <ul id="fileList" style="overflow-y: auto; max-height: 300px;"></ul>
         <div id="editorContainer" >
         <div id="editor" style="height: calc(100vh - 100px);"></div>
-
-
-
-    <div id="footer">
-<!--%lua%
-print("        <p><a href=\"" .. githubUrl .. "\" title=\"Served by " .. serverName .. "\"><span id=\"fti\"></span></a></p>\n")
-print("        <p>Indexes created " .. indexCreationTime .. "</p>\n")
-%lua%-->
     </div>
-  </div>
-
- <script>
+    <script>
         const editorContainer = document.getElementById('editor');
 
         async function fetchHoverInfo(url,lineNumber, column) {
@@ -654,6 +675,15 @@ function get_sym_list(){return [["Macro","xm",[["CASE",1927],["OFFLINE_QUEUEMAX"
 
 
     </script>
-</body>
+            <div id="footer">
+<!--%lua%
+print("            <p><a href=\"" .. githubUrl .. "\" title=\"Served by " .. serverName .. "\"><span id=\"fti\"></span></a></p>\n")
+print("            <div><img src=\"" .. serverUrl .. "/files/1.gif\" style=\"position:absolute; left:-9999px;\" alt=\"\"></div>\n")
+print("            <p>Indexes created " .. indexCreationTime .. "</p>\n")
+%lua%-->
+            </div>
+         </div>
+      </div>
+   </body>
 </html>
 

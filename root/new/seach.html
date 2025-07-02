@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BSD Search Results</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #000;
+      --highlight: #c5d5a9;
+      --alt-row: #e8e8f0;
+      --input-bg: #ffffff;
+      --input-border: #bbbbff;
+      --button-bg: #a3b8cb;
+      --button-border: #bbbbff;
+      --dir-bg: #c5d5a9;
+      --file-bg-odd: #ffffff;
+      --file-bg-even: #f4f4f4;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: "Liberation Sans", sans-serif;
+      margin: 1ex;
+    }
+
+    a {
+      text-decoration: none;
+      color: #2030A2;
+    }
+    a:visited, a:hover {
+      color: #202062;
+      text-decoration: underline;
+    }
+
+    input, button {
+      border: 1px solid var(--button-border);
+      border-radius: 0.75ex;
+      background-color: var(--button-bg);
+    }
+
+    input.q {
+      width: 100%;
+      background-color: var(--input-bg);
+      border: 1px solid var(--input-border);
+    }
+
+    input.submit {
+      font-weight: bold;
+    }
+
+    #page {
+      padding: 1ex;
+    }
+
+    #sbar {
+      border-top: 4px solid #ffc726;
+      margin: 0;
+      padding-top: 1ex;
+      clear: both;
+    }
+
+    #qtbl, #ptbl {
+      display: inline-block;
+      vertical-align: top;
+    }
+
+    #qtbl td:first-child {
+      width: 10ex;
+      text-align: right;
+    }
+
+    #qtbl td:nth-child(2) {
+      width: 45ex;
+    }
+
+    #ptbl {
+      margin-left: 2em;
+    }
+
+    #ptbl button {
+      font-size: small;
+      margin-left: 1em;
+    }
+
+    #ptbl select {
+      width: 100%;
+    }
+
+    #results table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    #results .dir {
+      background-color: var(--dir-bg);
+    }
+
+    #results .dir td {
+      padding-left: 1em;
+    }
+
+    #results td.f {
+      width: 20ex;
+      padding: 0.5ex;
+      font-weight: bold;
+    }
+
+    #results .con {
+      font-size: small;
+    }
+
+    #results .con .l {
+      display: inline-block;
+      width: 6ex;
+      text-align: right;
+      padding-right: 1ex;
+      margin-right: 0.2em;
+      background-color: #dddddd;
+      color: #666;
+    }
+
+    .file-row:nth-of-type(odd) {
+      background-color: var(--file-bg-odd);
+    }
+
+    .file-row:nth-of-type(even) {
+      background-color: var(--file-bg-even);
+    }
+
+    #footer {
+      color: #777;
+      font-size: small;
+      margin-top: 1ex;
+      border-top: 1px solid #bba;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div id="page">
+  <div id="results">
+    <p class="pagetitle">Search Results</p>
+    <table id="resultsTable">
+      <!-- dynamic rows here -->
+    </table>
+  </div>
+
+  <div id="footer">
+    <p><a href="http://www.opensolaris.org/os/project/opengrok/"><span id="fti"></span></a></p>
+    <p>Indexes created Wed May 08 03:59:52 PDT 2024</p>
+  </div>
+</div>
+
+<script>
+const searchResults = [
+  {
+    dir: "/OpenBSD/usr.sbin/smtpd/",
+    entries: [
+      {
+        file: "makemap.c",
+        lines: [
+          { num: 38, content: "static void usage(void);" },
+          { num: 137, content: "usage();" },
+          { num: 175, content: "fprintf(stderr, \"usage: newaliases [-f file]\\n\");" }
+        ]
+      },
+      {
+        file: "smtpc.c",
+        lines: [
+          { num: 53, content: "usage(void)" },
+          { num: 57, content: "fprintf(stderr, \"usage: ...\");" }
+        ]
+      }
+    ]
+  }
+];
+
+function renderResults() {
+  const table = document.getElementById('resultsTable');
+  for (const result of searchResults) {
+    const dirRow = document.createElement('tr');
+    dirRow.className = 'dir';
+    const dirCell = document.createElement('td');
+    dirCell.colSpan = 3;
+    dirCell.innerHTML = `<a href="#">${result.dir}</a>`;
+    dirRow.appendChild(dirCell);
+    table.appendChild(dirRow);
+
+    result.entries.forEach((entry, index) => {
+      const row = document.createElement('tr');
+      row.className = 'file-row';
+      const fileCell = document.createElement('td');
+      fileCell.className = 'f';
+      fileCell.innerHTML = `<a href="#">${entry.file}</a>`;
+
+      const contentCell = document.createElement('td');
+      contentCell.className = 'con';
+      for (const line of entry.lines) {
+        const a = document.createElement('a');
+        a.className = 's';
+        a.href = `#${line.num}`;
+        a.innerHTML = `<span class="l">${line.num}</span> ${line.content}`;
+        contentCell.appendChild(a);
+        contentCell.appendChild(document.createElement('br'));
+      }
+
+      row.appendChild(fileCell);
+      row.appendChild(contentCell);
+      table.appendChild(row);
+    });
+  }
+}
+
+renderResults();
+</script>
+</body>
+</html>

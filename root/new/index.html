@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BSD Search</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #000;
+      --highlight: #c5d5a9;
+      --alt-row: #e8e8f0;
+      --input-bg: #ffffff;
+      --input-border: #bbbbff;
+      --button-bg: #a3b8cb;
+      --button-border: #bbbbff;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: "Liberation Sans", sans-serif;
+      margin: 1ex;
+    }
+
+    a {
+      text-decoration: none;
+      color: #2030A2;
+    }
+    a:visited, a:hover {
+      color: #202062;
+      text-decoration: underline;
+    }
+
+    input, button {
+      border: 1px solid var(--button-border);
+      border-radius: 0.75ex;
+      background-color: var(--button-bg);
+    }
+
+    input.q {
+      width: 100%;
+      background-color: var(--input-bg);
+      border: 1px solid var(--input-border);
+    }
+
+    input.submit {
+      font-weight: bold;
+    }
+
+    #page {
+      padding: 1ex;
+    }
+
+    #sbar {
+      border-top: 4px solid #ffc726;
+      margin: 0;
+      padding-top: 1ex;
+      clear: both;
+    }
+
+    #qtbl, #ptbl {
+      display: inline-block;
+      vertical-align: top;
+    }
+
+    #qtbl td:first-child {
+      width: 10ex;
+      text-align: right;
+    }
+
+    #qtbl td:nth-child(2) {
+      width: 45ex;
+    }
+
+    #ptbl {
+      margin-left: 2em;
+    }
+
+    #ptbl button {
+      font-size: small;
+      margin-left: 1em;
+    }
+
+    #ptbl select {
+      width: 100%;
+    }
+
+    #footer {
+      color: #777;
+      font-size: small;
+      margin-top: 1ex;
+      border-top: 1px solid #bba;
+      text-align: center;
+    }
+
+    #fti {
+      display: inline-block;
+      width: 208px;
+      height: 45px;
+      background: url('./img/combined.png') no-repeat -171px 0;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <div id="page">
+    <div id="sbar">
+      <form id="sbox" action="search">
+        <div id="qtbl">
+          <table>
+            <tr><td><label for="s1">Full&nbsp;Search</label></td><td><input class="q" name="q" id="s1" tabindex="1"></td></tr>
+            <tr><td><label for="s2">Definition</label></td><td><input class="q" name="defs" id="s2" tabindex="2"></td></tr>
+            <tr><td><label for="s3">Symbol</label></td><td><input class="q" name="refs" id="s3" tabindex="3"></td></tr>
+            <tr><td><label for="s4">Path</label></td><td><input class="q" name="path" id="s4" tabindex="4"></td></tr>
+          </table>
+        </div>
+        <div id="ptbl">
+          <p>
+            <label for="project">In Project(s)</label>
+            <button type="button" onclick="selectAllProjects()">select all</button>
+            <button type="button" onclick="invertAllProjects()">invert</button>
+          </p>
+          <select multiple size="4" class="q" id="project" name="project">
+            <option value="DragonFly">DragonFly</option>
+            <option value="FreeBSD">FreeBSD</option>
+            <option value="NetBSD">NetBSD</option>
+            <option value="OpenBSD" selected>OpenBSD</option>
+          </select>
+        </div>
+        <p>
+          <input class="submit" type="submit" value="Search" tabindex="9">
+          <input class="submit" type="button" value="Clear" onclick="clearForm()" tabindex="10">
+          <button type="button" onclick="openHelp()" tabindex="11">Help</button>
+        </p>
+      </form>
+    </div>
+    <div id="results"></div>
+    <div id="footer">
+      <p><a href="http://www.opensolaris.org/os/project/opengrok/"><span id="fti"></span></a></p>
+      <p>Indexes created Wed May 08 03:59:52 PDT 2024</p>
+    </div>
+  </div>
+
+  <script>
+    function selectAllProjects() {
+      const sel = document.getElementById('project');
+      for (const opt of sel.options) opt.selected = true;
+    }
+
+    function invertAllProjects() {
+      const sel = document.getElementById('project');
+      for (const opt of sel.options) opt.selected = !opt.selected;
+    }
+
+    function clearForm() {
+      document.getElementById('s1').value = '';
+      document.getElementById('s2').value = '';
+      document.getElementById('s3').value = '';
+      document.getElementById('s4').value = '';
+      const sel = document.getElementById('project');
+      for (const opt of sel.options) opt.selected = false;
+    }
+
+    function openHelp() {
+      window.open('help.jsp');
+    }
+  </script>
+</body>
+</html>
+
