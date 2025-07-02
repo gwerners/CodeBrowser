@@ -1,81 +1,123 @@
 <!DOCTYPE html>
-<html lang="en" class="history">
-   <head>
-      <meta name="robots" content="nofollow">
-      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CodeBrowser Editor</title>
 <!--%lua%
-print("      <link rel=\"stylesheet\" type=\"text/css\" media=\"all\" title=\"Default\" href=\"" .. serverUrl .. "/files/style.css\">\n")
-print("      <link rel=\"stylesheet\" type=\"text/css\" href=\"" .. serverUrl .. "/files/jquery.tooltip.css\">\n")
-print("      <link rel=\"search\" href=\"" .. serverUrl .. "/opensearch\" type=\"application/opensearchdescription+xml\" title=\"OpenGrok Search for current project(s)\">\n")
-print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/jquery-1.4.4.min.js\"></script>\n")
-print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/jquery.tooltip-1.3.pack.js\"></script>\n")
-print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/utils.js\"></script>\n")
---print("      <title>" .. pageTitle .. ": /" .. project .. "/</title>\n")
-print("      <link rel=\"search\" href=\"" .. serverUrl .. "/opensearch\" type=\"application/opensearchdescription+xml\" title=\"Search for current project(s)\">\n")
-print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/monaco/min/vs/loader.js\"></script>\n")
+print("  <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/new_utils.js\"></script>\n")
+print("  <link rel=\"stylesheet\" type=\"text/css\" media=\"all\" title=\"Default\" href=\"" .. serverUrl .. "/files/new_style.css\">\n")
+print("  <script type=\"text/javascript\" src=\"" .. serverUrl .. "/monaco/min/vs/loader.js\"></script>\n")
 %lua%-->
     <style>
         #container {
             width: 100%;
             height: 500px;
         }
+
+        .myLineHighlight {
+            background-color: #7e804d;
+            opacity: 0.5;
+        }
+        #editor {
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        #overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #385170;
+            padding: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 20;
+            max-width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+
+        #overlay-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #overlay-table td {
+            vertical-align: middle;
+            padding: 0;
+            position: relative;
+        }
+
+        #overlay-header h2 {
+            margin: 0;
+        }
+
+        #close-overlay-btn {
+            background: none;
+            border: none;
+            font-size: 1.5em; /* Larger button for testing */
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+            z-index: 21; /* Ensure the button is above other content */
+            display: inline-block;
+            color: black; /* Set color to ensure it's visible */
+            position: relative; /* Add relative positioning to avoid issues */
+        }
+
+        #close-overlay-btn:hover {
+            color: red; /* Change color on hover to check visibility */
+        }
+
     </style>
-    
-   </head>
-   <body>
-      <script type="text/javascript">/* <![CDATA[ */
-         document.hash = 'null';document.rev = '';document.link = '/xref/OpenBSD/usr.sbin/smtpd/smtpd.c';document.annotate = false;
-         document.domReady.push(function() {domReadyMast();});
-         document.pageReady.push(function() { pageReadyMast();});
-         /* ]]> */
-      </script>
-      <div id="page">
-         <div id="whole_header">
-            <form action="/search">
-               <div id="header">
-  
-               </div>
-               <div id="Masthead">
+</head>
+<body>
+  <div id="page">
+    <div id="whole_header">
+      <div id="Masthead">
 <!--%lua%
 if (hash == nil or hash == '') then
-  print("                  <tt><a href=\"" .. serverUrl .. "/folders?project=" .. project .. "&path=" .. upperPath .. "\">" .. project .. "/" .. path .. "</a>/</tt>\n")
+  print("        Contents of <a href=\"" .. serverUrl .. "/folders?project=" .. project .. "&path=" .. upperPath .. "\">" .. project .. "/" .. path .. "</a>\n")
 else
-  print("                  <tt><a href=\"" .. serverUrl .. "/folders?project=" .. project .. "&path=" .. upperPath .. "\">" .. project .. "/" .. path .. "#" .. hash .. "</a>/</tt>\n")
+  print("        Contents of <a href=\"" .. serverUrl .. "/folders?project=" .. project .. "&path=" .. upperPath .. "\">" .. project .. "/" .. path .. "#" .. hash .. "</a>\n")
 end
 %lua%-->
-               </div>
-               <div id="bar">
-                  <ul>
+      </div>
+      <form action="#">
+        <div id="bar">
+          <ul>
 <!--%lua%
-print("                     <li><a href=\"" .. serverUrl .. "\"><span id=\"home\"></span>Home</a></li>\n")
-print("                     <li><a href=\"" .. serverUrl .. "/history?project=" .. project .. "&path=" .. path .. "\">History</a></li>\n")
+print("            <li><a href=\"" .. serverUrl .. "\">Home</a></li>\n")
+print("            <li><a href=\"" .. serverUrl .. "/history?project=" .. project .. "&path=" .. path .. "\">History</a></li>\n")
 if (hash == nil or hash == '') then
-  print("                     <li><a href=\"" .. serverUrl .. "/files?project=" .. project .. "&path=" .. path .. "\">Original</a></li>\n")
+  print("            <li><a href=\"" .. serverUrl .. "/files?project=" .. project .. "&path=" .. path .. "\">Original</a></li>\n")
 else
-  print("                     <li><a href=\"" .. serverUrl .. "/files?project=" .. project .. "&path=" .. path .. "&hash=" .. hash .. "\">Original</a></li>\n")
+  print("            <li><a href=\"" .. serverUrl .. "/files?project=" .. project .. "&path=" .. path .. "&hash=" .. hash .. "\">Original</a></li>\n")
 end
-%lua%-->   
-                     <li><a href="#" onclick="javascript:lsttoggle();return false;" title="Show or hide symbol list."><span id="defbox"></span>Navigate</a></li>
-                     <li><input type="text" id="search" name="q" class="q" value="">
-                        <input type="submit" value="Search" class="submit">
-                     </li>
-                     <li><input type="checkbox" name="path" value="/OpenBSD/usr.sbin/smtpd/" checked="checked"> only in <b>smtpd.c</b></li>
-                  </ul>
-                  <input type="hidden" name="project" value="OpenBSD">
-               </div>
-            </form>
-         </div>
-         <div id="content" style="top: 32073.5px; bottom: 0px;">
-            <script type="text/javascript">/* <![CDATA[ */
-               document.pageReady.push(function() { pageReadyList();});
-               /* ]]> */
-            </script>
+%lua%-->  
+          </ul>
+        </div>
+      </form>
+    </div>
 
 
-    <ul id="fileList" style="overflow-y: auto; max-height: 300px;"></ul>
-    <div id="editorContainer" style="height: calc(100vh - 100px);"></div>
-    <script>
-        const editorContainer = document.getElementById('editorContainer');
+        <div id="editorContainer" >
+        <div id="editor" style="height: calc(100vh - 100px);"></div>
+
+
+
+    <div id="footer">
+<!--%lua%
+print("        <p><a href=\"" .. githubUrl .. "\" title=\"Served by " .. serverName .. "\"><span id=\"fti\"></span></a></p>\n")
+print("        <p>Indexes created " .. indexCreationTime .. "</p>\n")
+%lua%-->
+    </div>
+  </div>
+
+ <script>
+         const editorContainer = document.getElementById('editor');
         async function fetchHoverInfo(url,lineNumber, column) {
             try {
                 console.log(url);
@@ -174,16 +216,7 @@ print("        let fileUrl = '" .. serverUrl .. "/bin?project=" .. project .. "&
             .then(response => response.text())
             .then(data => loadCppContent(data,'cpp'))
             .catch(error => console.error('Error fetching C++ content:', error));
-    </script>
-            <div id="footer">
-<!--%lua%
-print("            <p><a href=\"" .. githubUrl .. "\" title=\"Served by " .. serverName .. "\"><span id=\"fti\"></span></a></p>\n")
-print("            <div><img src=\"" .. serverUrl .. "/files/1.gif\" style=\"position:absolute; left:-9999px;\" alt=\"\"></div>\n")
-print("            <p>Indexes created " .. indexCreationTime .. "</p>\n")
-%lua%-->
-            </div>
-         </div>
-      </div>
-   </body>
+  </script>
+</body>
 </html>
 

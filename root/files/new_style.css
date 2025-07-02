@@ -139,7 +139,6 @@ input.submit {
   display: inline-block;
   width: 208px;
   height: 45px;
-  background: url('./img/combined.png') no-repeat -171px 0;
   vertical-align: middle;
 }
 
@@ -170,6 +169,7 @@ input.submit {
 #bar input.q {
   width: 20ex;
 }
+
 
 table#revisions {
   width: 100%;
@@ -213,4 +213,13 @@ table#revisions {
 
 .rev-message-full {
   margin: 0;
+  text-align: left;
+}
+
+.compare-cell input { margin: 0 5px; }
+
+th, td {
+ 
+  padding: 8px;
+  text-align: left;
 }

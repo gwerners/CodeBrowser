@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!--
+me ajuda com essa pagina. veja o campo "compare". embaixo tem um botao com mesmo nome . o problema eh que o campo compare tem dois radiobox, um a esquerda e outro a direita em cada linha.
+preciso:
+1-que o ultimo a direita seja selecionado por default
+2-o penultimo a esquerda seja selecionado por default
+3-a linha que tenha algum selecionado, deve desabilitar o outro radiobox na mesma linha
+4-radiobox à esquerda acima do selecionado a direita devem estar desabilitados
+5-radiobox à direita abaixo do selecionado a esquerda devem estar desabilitados
+6-esses checks devem ocorrer a cada mudanca de selecao de radiobox: quando o usuario seleciona, vc automaticamente desabilita os correspondentes
+7-de preferencia a fazer isso em javascript sem usar lib externa
+-->
   <meta charset="UTF-8">
   <title>Revision History</title>
   <style>
@@ -240,18 +251,18 @@
         const left = leftRadios[i];
         const right = rightRadios[i];
 
+        // Linha: se um estiver selecionado, desativa o outro
         if (left.checked) {
           right.disabled = true;
         } else if (right.checked) {
           left.disabled = true;
         } else {
-          // ❗ Correção da lógica de bloqueio, inversa
-          left.disabled = rightIndex !== -1 && i <= rightIndex;
-          right.disabled = leftIndex !== -1 && i >= leftIndex;
+          // Regras de dependência entre as seleções
+          left.disabled = rightIndex !== -1 && i >= rightIndex;
+          right.disabled = leftIndex !== -1 && i <= leftIndex;
         }
       });
     }
-
 
     // Listeners para atualizar após cada clique
     [...leftRadios, ...rightRadios].forEach(radio => {
@@ -263,12 +274,11 @@
     // - último da direita
     const total = rows.length;
     if (total >= 2) {
-      leftRadios[1].checked = true; // Penúltima linha de cima pra baixo
+      leftRadios[total - 2].checked = true;
     }
     if (total >= 1) {
-      rightRadios[0].checked = true; // Última à direita (visualmente o topo)
+      rightRadios[total - 1].checked = true;
     }
-
 
     updateStates(); // Aplica o estado inicial
   }
