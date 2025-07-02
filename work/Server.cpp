@@ -296,6 +296,9 @@ static void fillVariables(projectMap& _projects,
   if (req.url_params.get("full_search") != nullptr) {
     priv._fullTextQuery = req.url_params.get("full_search");
   }
+  if (req.url_params.get("q") != nullptr) {
+    priv._fullTextQuery = req.url_params.get("q");
+  }
   if (req.url_params.get("regexp_filter") != nullptr) {
     priv._regexpTextQuery = req.url_params.get("regexp_filter");
   }
