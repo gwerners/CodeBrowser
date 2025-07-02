@@ -4,122 +4,136 @@
       <meta name="robots" content="nofollow">
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <!--%lua%
-print("      <link rel=\"stylesheet\" type=\"text/css\" media=\"all\" title=\"Default\" href=\"" .. serverUrl .. "/files/style.css\">\n")
 print("      <link rel=\"stylesheet\" type=\"text/css\" href=\"" .. serverUrl .. "/files/jquery.tooltip.css\">\n")
-print("      <link rel=\"search\" href=\"" .. serverUrl .. "/opensearch\" type=\"application/opensearchdescription+xml\" title=\"OpenGrok Search for current project(s)\">\n")
 print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/jquery-1.4.4.min.js\"></script>\n")
 print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/jquery.tooltip-1.3.pack.js\"></script>\n")
 print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/utils.js\"></script>\n")
---print("      <title>" .. pageTitle .. ": /" .. project .. "/</title>\n")
-print("      <link rel=\"search\" href=\"" .. serverUrl .. "/opensearch\" type=\"application/opensearchdescription+xml\" title=\"Search for current project(s)\">\n")
+print("      <link rel=\"stylesheet\" type=\"text/css\" media=\"all\" title=\"Default\" href=\"" .. serverUrl .. "/files/new-style.css\">\n")
 %lua%-->
    </head>
+    <script>
+    function clearForm() {
+      document.getElementById('full-search').value = '';
+      document.getElementById('regexp-filter').value = '';
+      document.getElementById('project-select').selectedIndex = -1;
+    }
+    document.projects = [  ];document.xrefPath = '/folders?project=';document.domReady.push(function() { domReadyMenu(); });
+  </script>
+
    <body>
-      <div id="page">
-         <div id="whole_header">
-            <div id="header">
+
+ <!-- Link no topo -->
+  <div class="link-bar">
+    <a href="#"></a>
+  </div>
+
+  <!-- Linha laranja -->
+  <div class="top-line"></div>
+
+  <!-- Formulário -->
+  <form method="GET" action="/search">
+    <div class="container">
+      <!-- Lado esquerdo -->
+      <div class="left-side">
+        <div class="form-title">Search</div>
+        <div class="form-row">
+          <label for="full-search">Full Search:</label>
 <!--%lua%
-print("               <a href=\"" .. serverUrl .. "/\"><span id=\"MastheadLogo\"></span></a>\n")
+print("          <input type=\"text\" id=\"full-search\" name=\"full_search\" value=\"" .. fullTextQuery .. "\">\n")
 %lua%-->
-            </div>
-            <div id="Masthead"></div>
-            <div id="sbar">
-               <script type="text/javascript">/* <![CDATA[ */
-                  document.projects = [ ];document.xrefPath = '/folders?project=';document.domReady.push(function() { domReadyMenu(); });
-                  /* ]]> */
-               </script>
-               <form action="search" id="sbox">
-                  <div id="qtbl">
-                     <table>
-                        <tbody>
-                           <tr>
-                              <td><label for="s1">Full&nbsp;Search</label></td>
+
+        </div>
+        <div class="form-row">
+          <label for="regexp-filter">Regexp filter:</label>
 <!--%lua%
-print("                              <td><input tabindex=\"1\" class=\"q\" name=\"q\" id=\"s1\" value=\"" .. fullTextQuery .. "\"></td>\n")
+local function isempty(s)
+  return s == nil or s == ''
+end
+if (not isempty(regexpTextQuery)) then
+  print("          <input type=\"text\" id=\"regexp-filter\" name=\"regexp_filter\" value=\"" .. regexpTextQuery .. "\">\n")
+else
+  print("          <input type=\"text\" id=\"regexp-filter\" name=\"regexp_filter\">\n")
+end
 %lua%-->
-                           </tr>
-                           <tr>
-                              <td><label for="s2">Definition</label></td>
-                              <td><input class="q" tabindex="2" name="defs" id="s2"></td>
-                           </tr>
-                           <tr>
-                              <td><label for="s3">Symbol</label></td>
-                              <td><input class="q" tabindex="3" name="refs" id="s3"></td>
-                           </tr>
-                           <tr>
-                              <td>
-                                 <label for="s4">
-                                    <!--File&nbsp;-->Path
-                                 </label>
-                              </td>
-                              <td><input class="q" tabindex="4" name="path" id="s4"></td>
-                           </tr>
-                        </tbody>
-                     </table>
-                  </div>
-                  <div id="ptbl">
-                     <p><label for="project">In Project(s)</label> <button tabindex="6" type="button" onclick="javascript: selectAllProjects(); return false;">select all</button>&nbsp;<button tabindex="7" type="button" onclick="javascript: invertAllProjects(); return false;">invert selection</button> </p>
-                     <select tabindex="8" ondblclick="javascript: goFirstProject();" onkeyup="javascript: checkEnter(event);" id="project" name="project" size="4" style="background-color: #9fd3c7;" >
+        </div>
+        <div class="button-row">
+          <button type="submit">Search</button>
+          <button type="button" onclick="clearForm()">Clear</button>
+        </div>
+      </div>
+
+      <!-- Lado direito -->
+      <div class="right-side">
+        <div class="form-title">In Project</div>
+        <select id="project" name="project" size="5" ondblclick="javascript: goFirstProject();">
 <!--%lua%
 for k, v in pairs(projects) do 
-  -- <option value="DragonFly">DragonFly</option>
-  -- <option value="OpenBSD" selected="selected">OpenBSD</option>
   if (project == k) then
-    print("                        <option value=\"" .. k .. "\" selected=\"selected\" style=\"background-color: #ececec;\">" .. k .. "</option>\n")
+    print("          <option value=\"" .. k .. "\" selected=\"selected\">" .. k .. "</option>\n")
   else
-    print("                        <option value=\"" .. k .. "\"\"  >" .. k .. "</option>\n")
+    print("          <option value=\"" .. k .. "\"\"  >" .. k .. "</option>\n")
   end
 end 
-
 %lua%-->
-                     </select>
-                  </div>
-                  <p><input tabindex="9" class="submit" type="submit" value="Search"> <input tabindex="10" class="submit" onclick="javascript: sbox.q.value='';
-                     sbox.defs.value = ''; sbox.refs.value = ''; sbox.path.value = '';
-                     sbox.hist.value = ''; sbox.project.value ='';" type="button" value=" Clear "> <button class="help" tabindex="11" onclick="window.open('help.jsp')">Help</button></p>
-               </form>
-            </div>
-         </div>
-         <div id="results">
+        </select>
+      </div>
+    </div>
+  </form>
 
-            <p class="pagetitle">Searched <b>full:main</b> (Results <b> 1 - 25</b> of <b>2429</b>) sorted by lastmodtime</p>
-            <table>
-               <tbody>
+  
+  
+  
+<div style="margin-top: 20px; font-family: sans-serif; color: #000; padding: 0 20px;">
+
+  <label style="display: block; margin-bottom: 8px; color: #ececec;">Full search:</label>
+
+
 <!--%lua%
 if searchInfo then
+  local isLineOdd = true
   for i = 1, #searchInfo do
-      local si = searchInfo[i]
-      local SearchFile = si.files
-      print("               <tr class=\"dir\">\n")
-      print("                  <td colspan=\"3\"><a href=\"" .. serverUrl .. "/folders?project=" .. project .. "&path=" .. si.path .. "\">" .. si.path .. "</a></td>\n")
-      print("               </tr>\n")
-      for j = 1, #SearchFile do
-        local sf = SearchFile[j]
-        print("               <tr>\n")
-        print("                  <td class=\"f\"><a href=\"" .. serverUrl .. "/files?project=" .. project .. "&path=" .. si.path .. sf.name .. "\">" .. sf.name .. "</a></td>\n")
-        local SeachLine = sf.lines
-        print("                    <td><tt class=\"con\">\n")
-        for k = 1, #SeachLine do
-          local sl = SeachLine[k]
-          print("                      <a class=\"s\" href=\"" .. serverUrl .. "/files?project=" .. project .. "&path=" .. si.path .. sf.name .."&line=" .. sl.line .. "\"><span class=\"l\">".. sl.line .."</span>" .. sl.excerpt .. "</a> <br>\n")
-        end
-        print("                    </tt></td></tr>\n")
+    local si = searchInfo[i]
+    local SearchFile = si.files
+    print(" <table class=\"tabela-principal\">\n")
+    print("    <tr class=\"cabecalho\">\n")
+    print("      <th colspan=\"2\"><a href=\"" .. serverUrl .. "/folders?project=" .. project .. "&path=" .. si.path .. "\">" .. si.path .. "</a></th>\n")
+    print("    </tr>\n")
+    print("    <tbody>\n")
+
+    for j = 1, #SearchFile do
+      local sf = SearchFile[j]
+    if (isLineOdd) then
+      print("      <tr class=\"linha-impar\">\n")
+    else
+      print("      <tr class=\"linha-par\">\n")
+    end
+      print("        <td class=\"celula-arquivo\"><a href=\"" .. serverUrl .. "/files?project=" .. project .. "&path=" .. si.path .. sf.name .. "\">" .. sf.name .. "</a></td>\n")
+      print("        <td class=\"conteudo-dados\">\n")
+      print("          <table class=\"subtabela\">\n")
+      local SeachLine = sf.lines
+      for k = 1, #SeachLine do
+        local sl = SeachLine[k]
+        print("            <tr class=\"sublinha\"><td class=\"subcelula\"> <span class=\"numero\">".. sl.line .."</span><a href=\"" .. serverUrl .. "/files?project=" .. project .. "&path=" .. si.path .. sf.name .."&line=" .. sl.line .. "\"> " .. sl.excerpt .. "</a></td></tr>\n")
       end
+      print("          </table>          </td>\n")
+      print("        </tr>\n")
+          if (isLineOdd) then
+      isLineOdd = false
+    else
+      isLineOdd = true
+    end
+    end
+    
+
+    print("    </tbody>\n")
+    print("  </table>\n")    
   end
 end
 %lua%-->
-               </tbody>
-            </table>
-            <p><b>Completed in 111 milliseconds</b></p>
-         </div>
-         <div id="footer">
-<!--%lua%
-print("            <p><a href=\"" .. githubUrl .. "\" title=\"Served by " .. serverName .. "\"><span id=\"fti\"></span></a></p>\n")
-print("            <div><img src=\"" .. serverUrl .. "/files/1.gif\" style=\"position:absolute; left:-9999px;\" alt=\"\"></div>\n")
-print("            <p>Indexes created " .. indexCreationTime .. "</p>\n")
-%lua%-->
-         </div>
-      </div>
-   </body>
+  
+
+
+  </div>
+ </body>
 </html>
 

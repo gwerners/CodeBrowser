@@ -36,7 +36,7 @@ constexpr const char* CONFIG_JSON = R"json(
     "lsp" : "clangd",
     "git" : "/usr/bin/git",
     "cpp-suffix" : ["cpp","c","h","hpp"],
-    "update-index" : true
+    "update-index" : false
 })json";
 //"lsp" : "clangd",
 //"lsp" :/"/home/gwerners/development/CodeWayfinder/lsp-client/lsp-client/ccls/Release/ccls",

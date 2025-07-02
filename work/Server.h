@@ -30,6 +30,7 @@ class ServerPrivData {
   std::string _r1;
   std::string _r2;
   std::string _fullTextQuery;
+  std::string _regexpTextQuery;
   bool _updateIndex;
 };
 class Server {
