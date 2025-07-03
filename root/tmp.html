@@ -1,116 +1,195 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Call Hierarchy</title>
-    <style>
-        ul {
-            list-style-type: none;
-            padding-left: 20px;
-        }
-        li {
-            margin: 5px 0;
-            position: relative;
-        }
-        .expand-collapse {
-            cursor: pointer;
-            display: inline-block;
-            width: 20px;
-            text-align: center;
-            margin-right: 5px;
-        }
-        .expanded::before {
-            content: "-";
-        }
-        .collapsed::before {
-            content: "+";
-        }
-        .close-button {
-            color: red;
-            cursor: pointer;
-            display: inline-block;
-            margin-left: 10px;
-        }
-        .close-button:hover {
-            color: darkred;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>gfx-drm - History</title>
+  <style>
+    :root {
+      --bg-color: #fff;
+      --fg-color: #000;
+      --link-color: #2030a2;
+      --link-hover: #202062;
+      --header-bg: #fff;
+      --header-height: 70px;
+      --bar-bg: #ffc726;
+      --row-alt-bg: #e8e8f0;
+      --panel-bg: #f0f0f0;
+      --font: sans-serif;
+    }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background-color: var(--bg-color);
+      color: var(--fg-color);
+    }
+    #whole_header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: var(--header-bg);
+      height: var(--header-height);
+      z-index: 100;
+    }
+    #Masthead {
+      margin: 1ex;
+      font-family: monospace;
+    }
+    #bar {
+      clear: both;
+      border-top: 4px solid var(--bar-bg);
+      padding: 0.2em 0.5em;
+    }
+    #bar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #bar li {
+      display: inline;
+      margin-right: 1em;
+    }
+    a {
+      color: var(--link-color);
+      text-decoration: none;
+    }
+    a:hover {
+      color: var(--link-hover);
+      text-decoration: underline;
+    }
+    #content {
+      margin-top: var(--header-height);
+      padding: 1em;
+    }
+    .toggle-link-global {
+      font-size: small;
+      cursor: pointer;
+      color: var(--link-color);
+      margin-bottom: 0.5em;
+      display: inline-block;
+    }
+    table#revisions {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    #revisions thead {
+      background-color: #c5d5a9;
+    }
+    #revisions tbody tr:nth-child(even) {
+      background-color: var(--row-alt-bg);
+    }
+    #revisions th, #revisions td {
+      padding: 0.5ex;
+      text-align: center;
+    }
+    #revisions td:first-child {
+      font-family: monospace;
+      text-align: right;
+    }
+    #revisions td p {
+      text-align: left;
+      margin: 0;
+    }
+    .filelist-hidden {
+      display: none;
+      font-family: monospace;
+    }
+    .rev-message-full a {
+      margin-right: 0.5em;
+    }
+  </style>
 </head>
 <body>
-    <button id="showHierarchy">Show Call Hierarchy</button>
-    <div id="overlay" style="display: none;">
-        <div id="hierarchyList"></div>
-        <span class="close-button" id="closeOverlay">X</span>
+  <div id="page">
+    <div id="whole_header">
+      <div id="header"></div>
+      <div id="Masthead">
+        History log of /<a href="#">gfx-drm</a>/ (Results <b>1 – 25</b> of <b>73</b>)
+      </div>
+      <form action="#">
+        <div id="bar">
+          <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">History</a></li>
+            <li><span class="c">Annotate</span></li>
+            <li><input type="text" name="full" class="q" autocomplete="off"></li>
+            <li><input type="submit" value="Search" class="submit"></li>
+            <li><input type="checkbox" name="path"> current directory</li>
+          </ul>
+        </div>
+      </form>
     </div>
+    <div id="content">
+      <form action="#">
+        
+        <table class="src" id="revisions">
+          <thead>
+            <tr>
+              <th>Revision</th>
+              <th>Date</th>
+              <th>Author</th>
+              <th>Comments  <div class="toggle-link-global" onclick="toggleAllFileLists(this)">(Show modified files >>>)</div></th>
+            </tr>
+          </thead>
+          <tbody id="rev-body">
+            <!-- Populated dynamically -->
+          </tbody>
+        </table>
+      </form>
+    </div>
+  </div>
+  <script>
+    const revisions = [
+      {
+        rev: "19482684",
+        date: "03-Jan-2022",
+        author: "Gordon Ross",
+        comment: "<a href='#'>14368</a> make debug fails with gcc7<br>Reviewed by: Aurelien Larcher",
+        files: [
+          "usr/src/uts/intel/drm/Makefile",
+          "usr/src/uts/intel/i915/Makefile"
+        ]
+      },
+      {
+        rev: "46b209bc",
+        date: "26-Jan-2020",
+        author: "Aurelien Larcher",
+        comment: "<a href='#'>12394</a> gfx-drm should use gcc-7",
+        files: [
+          "usr/src/uts/common/io/drm/drm_sysfs.c",
+          "usr/src/uts/intel/io/i915/intel_display.c"
+        ]
+      }
+    ];
 
-    <script>
-        const jsonData = {
-            "name": "main",
-            "calls": [
-                {
-                    "name": "functionA",
-                    "calls": [
-                        {
-                            "name": "functionB",
-                            "calls": []
-                        }
-                    ]
-                },
-                {
-                    "name": "functionC",
-                    "calls": []
-                }
-            ]
-        };
+    function createRevisionRow(rev) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${rev.rev}</td>
+        <td>${rev.date}</td>
+        <td>${rev.author}</td>
+        <td>
+          <p class="rev-message-full">${rev.comment}</p>
+          <div class="filelist-hidden">
+            ${rev.files.map(f => `<a href='#'>${f}</a><br>`).join("")}
+          </div>
+        </td>
+      `;
+      return row;
+    }
 
-        function createHierarchyList(data) {
-            const ul = document.createElement('ul');
+    function toggleAllFileLists(link) {
+      const hiddenLists = document.querySelectorAll(".filelist-hidden");
+      const showing = [...hiddenLists].some(div => div.style.display === "block");
+      hiddenLists.forEach(div => {
+        div.style.display = showing ? "none" : "block";
+      });
+      link.textContent = showing ? "(Show modified files >>>)" : "(<<< Hide modified files)";
+    }
 
-            data.calls.forEach(call => {
-                const li = document.createElement('li');
-
-                const expandCollapse = document.createElement('span');
-                expandCollapse.className = 'expand-collapse collapsed';
-                expandCollapse.addEventListener('click', (e) => {
-                    const ulChild = e.target.nextElementSibling;
-                    if (ulChild.style.display === 'none') {
-                        ulChild.style.display = 'block';
-                        e.target.className = 'expand-collapse expanded';
-                    } else {
-                        ulChild.style.display = 'none';
-                        e.target.className = 'expand-collapse collapsed';
-                    }
-                });
-
-                const textNode = document.createTextNode(call.name);
-
-                li.appendChild(expandCollapse);
-                li.appendChild(textNode);
-
-                if (call.calls.length > 0) {
-                    const childUl = createHierarchyList(call);
-                    childUl.style.display = 'none';
-                    li.appendChild(childUl);
-                }
-
-                ul.appendChild(li);
-            });
-
-            return ul;
-        }
-
-        document.getElementById('showHierarchy').addEventListener('click', () => {
-            const overlay = document.getElementById('overlay');
-            const hierarchyList = document.getElementById('hierarchyList');
-            hierarchyList.innerHTML = ''; // Clear previous content
-            hierarchyList.appendChild(createHierarchyList(jsonData));
-            overlay.style.display = 'block';
-        });
-
-        document.getElementById('closeOverlay').addEventListener('click', () => {
-            document.getElementById('overlay').style.display = 'none';
-        });
-    </script>
+    window.onload = () => {
+      const tbody = document.getElementById("rev-body");
+      revisions.forEach(rev => tbody.appendChild(createRevisionRow(rev)));
+    };
+  </script>
 </body>
-<
+</html>

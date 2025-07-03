@@ -1,197 +1,198 @@
 <!DOCTYPE html>
-<html lang="en" class="history">
-   <head>
-      <meta charset="UTF-8">
-      <meta name="robots" content="noindex,nofollow">
-      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CodeBrowser File Revision History</title>
+<!--%lua%
+print("  <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/new_utils.js\"></script>\n")
+print("  <link rel=\"stylesheet\" type=\"text/css\" media=\"all\" title=\"Default\" href=\"" .. serverUrl .. "/files/new_style.css\">\n")
+%lua%-->
+</head>
+<style>
+.toggle-link-global {
+  float: right;
+  font-size: small;
+  cursor: pointer;
+  color: #2030a2;
+}
+.toggle-link-global:hover {
+  color: #202062;
+  text-decoration: underline;
+}
 
-<!--%lua%
+.filelist-hidden {
+  display: none;
+  font-family: monospace;
+  font-size: 90%;
+  margin-top: 0.5em;
+  padding-left: 2em;
+  color: #444;
+  text-align: left;
+}
 
-print("      <link rel=\"stylesheet\" type=\"text/css\" media=\"all\" title=\"Default\" href=\"" .. serverUrl .. "/files/style.css\">\n")
-print("      <link rel=\"stylesheet\" type=\"text/css\" href=\"" .. serverUrl .. "/files/mandoc-1.0.0.min.css\" media=\"all\">\n")
-print("      <link rel=\"stylesheet\" type=\"text/css\" href=\"" .. serverUrl .. "/files/jquery-ui-1.12.1-custom.min.css\">\n")
-print("      <link rel=\"stylesheet\" type=\"text/css\" href=\"" .. serverUrl .. "/files/jquery-ui-1.12.1-custom.structure.min.css\">\n")
-print("      <link rel=\"stylesheet\" type=\"text/css\" href=\"" .. serverUrl .. "/files/jquery-ui-1.12.1-custom.theme.min.css\">\n")
-print("      <link rel=\"stylesheet\" type=\"text/css\" href=\"" .. serverUrl .. "/files/jquery.tooltip.min.css\">\n")
-print("      <link rel=\"stylesheet\" type=\"text/css\" href=\"" .. serverUrl .. "/files/jquery.tablesorter.min.css\">\n")
-print("      <link rel=\"stylesheet\" type=\"text/css\" href=\"" .. serverUrl .. "/files/searchable-option-list-2.0.3.min.css\">\n")
-print("      <link rel=\"search\" href=\"" .. serverUrl .. "/opensearch\" type=\"application/opensearchdescription+xml\" title=\"Search for current project(s)\">\n")
---print("      <title>" .. pageTitle .. ": /" .. project .. "/</title>\n")
-%lua%-->
-      <script type="text/javascript">/* <![CDATA[ */
-         window.contextPath = '/files';
-         document.xrefPath = '/files/xref';
-         document.pageReady = [];
-         document.domReady = [];
-         /* ]]> */
-      </script>
-<!--%lua%
-print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/jquery.min.js\" data-priority=\"10\"></script>\n")
-print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/jquery-ui-1.12.1-custom.min.js\" data-priority=\"11\"></script>\n")
-print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/jquery.tablesorter.min.js\" data-priority=\"12\"></script>\n")
-print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/tablesorter-parsers-0.0.2.min.js\" data-priority=\"13\"></script>\n")
-print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/searchable-option-list-2.0.14.min.js\" data-priority=\"14\"></script>\n")
-print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/utils-0.0.39.min.js\" data-priority=\"15\"></script>\n")
-print("      <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/jquery.caret-1.5.2.min.js\" data-priority=\"25\"></script>\n")
-%lua%-->
-   </head>
-   <body>
-      <script type="text/javascript">/* <![CDATA[ */
-         document.rev = function() { return getParameter("r"); };
-         document.annotate = false;
-         document.domReady.push(function() { domReadyMast(); });
-         document.pageReady.push(function() { pageReadyMast(); });
-         /* ]]> */
-      </script>
-      <div id="page">
-         <div id="whole_header">
-            <div id="header"></div>
-<!--%lua%
-print("            <div id=\"Masthead\">History log of <a href=\"" .. serverUrl .. "/folders?project=" .. project .. "&path=" .. path .. "\">" .. project .. "/" .. path .."</a></div>\n")
-%lua%-->
-            <form action="/source/search">
-               <div id="bar">
-                  <ul>
-<!--%lua%
-print("                     <li><a href=\"" .. serverUrl .. "/\"><span id=\"home\"></span>Home</a></li>\n")
---print("                     <li><a href=\"" .. serverUrl .. "/\"><span id=\"history\"></span>History</a></li>\n")
-%lua%-->
-                     <li><span class="c"><span class="annotate"></span>Annotate</span></li>
-                     <li><input type="text" id="search" name="full" class="q ui-autocomplete-input" autocomplete="off"></li>
-                     <li><input type="submit" value="Search" class="submit"></li>
-                     <li><input id="minisearch-path" type="checkbox" name="path" value="&quot;/gfx-drm/usr/src/uts/sparc/&quot;"> current directory</li>
-                  </ul>
-                  <input id="minisearch-project" type="hidden" name="project" value="gfx-drm"><input type="hidden" id="contextpath" value="/source">
-               </div>
-            </form>
-            <script type="text/javascript">/* <![CDATA[ */
-               document.domReady.push(function() { domReadyMenu(true); });
-               /* ]]> */
-            </script>
-         </div>
-         <div id="content" tabindex="1" style="outline: none;">
-            <script type="text/javascript">/* <![CDATA[ */
-               document.domReady.push(function() {domReadyHistory();});
-               /* ]]> */
-            </script>
-            <!--[if IE]>
-            <style type="text/css">
-               table#revisions tbody tr td p {
-               word-break: break-all;
-               }
-            </style>
-            <![endif]-->
-            <form action="/source/diff/gfx-drm/">
-               <table class="src" id="revisions">
-                  <thead>
-                     <tr>
-                        <th>Revision</th>
-                        <th>Date</th>
-                        <th>Author</th>
-                        <th>
-                           Comments 
-                           <a href="#" onclick="javascript: toggle_filelist(); return false;">
-                              <div class="filelist-hidden">
-                                 (&lt;&lt;&lt; Hide modified files)
-                              </div>
-                              <div class="filelist">
-                                 (Show modified files &gt;&gt;&gt;)
-                              </div>
-                           </a>
-                        </th>
-                     </tr>
-                  </thead>
+table#revisions {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: small;
+}
 
-                  <tbody>
+#revisions thead {
+  background-color: var(--header-bg);
+  color: black;
+}
+
+#revisions th, #revisions td {
+  padding: 0.5ex 1ex;
+  border: none;
+  vertical-align: top;
+}
+
+#revisions tbody tr:nth-child(odd) {
+  background-color: var(--main-row);
+}
+
+#revisions tbody tr:nth-child(even) {
+  background-color: var(--alt-row);
+}
+
+#revisions td:first-child {
+  font-family: monospace;
+  text-align: center;
+  white-space: nowrap;
+}
+
+#revisions td:nth-child(2), #revisions td:nth-child(3) {
+  text-align: center;
+  white-space: nowrap;
+}
+
+#revisions td:nth-child(4) {
+  padding: 0 1ex;
+}
+
+.rev-message-full {
+  margin: 0;
+  text-align: left;
+}
+
+.compare-cell input { margin: 0 5px; }
+
+th, td {
+ 
+  padding: 8px;
+  text-align: center;
+}
+</style>
+
+<body>
+  <div id="page">
+    <div id="whole_header">
+      <div id="Masthead">
+<!--%lua%
+print("        History of <a href=\"" .. serverUrl .. "/folders?project=" .. project .. "&path=" .. path .. "\">" .. project .. "/" .. path .. "</a>\n")
+%lua%-->
+      (Results <b id="revCount">0</b>)
+      </div>
+      <form action="#">
+        <div id="bar">
+          <ul>
+<!--%lua%
+print("            <li><a href=\"" .. serverUrl .. "\">Home</a></li>\n")
+%lua%-->
+          </ul>
+        </div>
+      </form>
+    </div>
+
+    <div id="content">
+      <form action="#">
+        <table class="src" id="revisions">
+          <thead>
+            <tr>
+              <th>Revision</th>
+              <th>Date</th>
+              <th>Author</th>
+              <th>Comments  <div class="toggle-link-global" onclick="toggleAllFileLists(this)">(Show modified files >>>)</div></th>
+            </tr>
+          </thead>
+          <tbody id="rev-body">
+            <!-- Populated dynamically -->
+          </tbody>
+        </table>
+      </form>
+    </div>
+
+    <div id="footer">
+<!--%lua%
+print("        <p><a href=\"" .. githubUrl .. "\" title=\"Served by " .. serverName .. "\"><span id=\"fti\"></span></a></p>\n")
+print("        <p>Indexes created " .. indexCreationTime .. "</p>\n")
+%lua%-->
+    </div>
+  </div>
+
+<script>
+
+    const revisions = [
 <!--%lua%
 if commits then
+  local comma = ""
   for i = 1, #commits do
-      local commit = commits[i]
-  print("                   <tr>\n")
-  print("                        <td>" .. commit.hash .. "</td>\n")
-  print("                        <td>" .. commit.date .. "</td>\n")
-  print("                        <td>" .. commit.author .. "</td>\n")
-  print("                        <td>\n")
-  print("                           <a href=\"" .. serverUrl .. "/files?project=" .. project .. "&path=" .. path .. "&hash=" .. commit.hash .. "\" name=\"" .. commit.hash .. "\"></a>\n")
-  print("                           <p class=\"rev-message-full\">" .. commit.message .. "</p>\n")
-  print("                           <div class=\"filelist-hidden\"><br>\n")
+    local commit = commits[i]
+    print(comma .. "{\n")
+    print("      rev: \"" .. commit.hash .. "\",\n")
+    print("      date: \"" .. commit.date .. "\",\n")
+    print("      author: \"" .. commit.author .. "\",\n")
+    print("      comment: \"" .. commit.message .. "\",\n")
+    print("      files: [\n")
+    local fileComma = ""
     for j = 1, #commit.files do
-      print("                           <a class=\"h\" href=\"" .. serverUrl .. "/files?project=" .. project .. "&path=" ..  commit.files[j] .. "&hash=" .. commit.hash .. "\">" .. commit.files[j] .. "</a><br>\n")
+      print("          " .. fileComma .. "{url:\"" .. serverUrl .. "/files?project=" .. project .. "&path=" ..  commit.files[j] .. "&hash=" .. commit.hash .. "\",path:\"" .. commit.files[j] .. "\"}\n")
+      fileComma = ","
     end
-  print("                           </div>\n")
-  print("                        </td>\n")
-  print("                     </tr>\n")
+    print("        ],\n")
+    print("      url: \"" .. serverUrl .. "/files?project=" .. project .. "&path=" .. path .. "&hash=" .. commit.hash .. "\"\n")
+    print("}\n")
+    comma = ","
   end
 end
 %lua%-->
-                    
-                  </tbody>
-                  <tfoot>
-                     <tr>
-                        <td colspan="5">
-                           <!--p class="slider"><span class="sel">1</span><a class="more" href="https://src.illumos.org/source/history/gfx-drm/?n=25&amp;start=25">2</a><a class="more" href="https://src.illumos.org/source/history/gfx-drm/?n=25&amp;start=50">3</a></p-->
-                        </td>
-                     </tr>
-                  </tfoot>
-               </table>
-            </form>
-            <p class="rssbadge"><a href="https://src.illumos.org/source/rss/gfx-drm/" title="RSS XML Feed of latest changes"><span id="rssi"></span></a></p>
-            <div id="footer">
-               <p><a href="http://opengrok.github.com/OpenGrok/" title="Served by OpenGrok (1.5.11 - ecb835e)"><span id="fti"></span></a></p>
-               <p>Last Index update Sun May 12 02:10:44 UTC 2024</p>
+    ];
+    const tbody = document.getElementById("revTable");
+    const revCount = document.getElementById("revCount");
+    revCount.textContent = `${revisions.length}`;
+
+    function createRevisionRow(rev) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+         <td>${rev.rev}</td>
+         <td>${rev.date}</td>
+         <td>${rev.author}</td>
+         <td>
+            <p class="rev-message-full">${rev.comment}</p>
+            <div class="filelist-hidden" style="display: none;">
+            ${rev.files.map(f => `<a href="${f.url}">${f.path}</a><br>`).join("")}
             </div>
-         </div>
-      </div>
-      <div class="window diff_navigation_style intelli-window ui-draggable ui-draggable-handle" style="z-index: 15000; display: none; position: fixed;" id="intelli_win">
-         <div class="window-header">
-            <div class="clearfix">
-               <div class="pull-left"><b>Intelligence window</b></div>
-               <div class="pull-right"><a href="#" class="minimize">x</a></div>
-            </div>
-         </div>
-         <div class="window-body">
-            <div style="text-align: center;"></div>
-            <div class="pull-right">
-               <a href="#" title="next" class="pull-right">Next &gt;&gt;</a><span class="pull-right"> | </span><a href="#" title="prev" class="pull-right">&lt;&lt; Prev </a>
-               <div class="clearfix"></div>
-               <span class="clearfix"></span>
-            </div>
-            <h2 class="symbol-name"></h2>
-            <span class="symbol-description"></span>
-            <hr>
-            <h5>In current file</h5>
-            <ul>
-               <li><a href="#" title="Highlight"><span>Highlight</span> <b class="symbol-name"></b></a></li>
-               <li><a href="#" title="Unhighlight"><span>Unhighlight</span> <b class="symbol-name"></b></a></li>
-               <li><a href="#" title="Unhighlight all"><span>Unhighlight all</span></a></li>
-            </ul>
-            <h5>In project "undefined"</h5>
-            <ul>
-               <li><a class="search-defs" href="#" target="_blank"><span>Search for definitions of</span> <b class="symbol-name"></b></a></li>
-               <li><a class="search-refs" href="#" target="_blank"><span>Search for references of</span> <b class="symbol-name"></b></a></li>
-               <li><a class="search-full" href="#" target="_blank"><span>Do a full search with</span> <b class="symbol-name"></b></a></li>
-               <li><a class="search-files" href="#" target="_blank"><span>Search for file names that contain</span> <b class="symbol-name"></b></a></li>
-            </ul>
-            <h5>On Google</h5>
-            <ul>
-               <li><a class="search-google" href="#" target="_blank"><span>Google</span> <b class="symbol-name"></b></a></li>
-            </ul>
-         </div>
-      </div>
-      <div class="window diff_navigation_style messages-window" style="z-index: 15000; display: none; top: 150px; right: 20px;" id="messages_win">
-         <div class="window-header">
-            <div class="clearfix">
-               <div class="pull-left"><b>Messages Window</b></div>
-               <div class="pull-right"><a href="#" class="minimize">x</a></div>
-            </div>
-         </div>
-         <div class="window-body">
-            <div style="text-align: center;"></div>
-            <div></div>
-         </div>
-      </div>
-      <ul id="ui-id-1" tabindex="0" class="ui-menu ui-widget ui-widget-content ui-autocomplete ui-front" style="display: none;"></ul>
-      <div role="status" aria-live="assertive" aria-relevant="additions" class="ui-helper-hidden-accessible"></div>
-   </body>
+         </td>
+      `;
+      return row;
+      }
+
+
+    function toggleAllFileLists(link) {
+      const hiddenLists = document.querySelectorAll(".filelist-hidden");
+      const showing = [...hiddenLists].some(div => div.style.display === "block");
+      hiddenLists.forEach(div => {
+        div.style.display = showing ? "none" : "block";
+      });
+      link.textContent = showing ? "(Show modified files >>>)" : "(<<< Hide modified files)";
+    }
+
+    window.onload = () => {
+      const tbody = document.getElementById("rev-body");
+      revisions.forEach(rev => tbody.appendChild(createRevisionRow(rev)));
+    };
+</script>
+
+</body>
 </html>
 
