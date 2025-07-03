@@ -326,6 +326,7 @@ void Server::configure() {
   _git = data["git"];
   _search = data["search"];
   _updateIndex = data["update-index"];
+  _indexTimestamp = data["index-timestamp"];
   if (data.contains("projects")) {
     json projects = data["projects"];
     for (size_t pos = 0; pos < projects.size(); ++pos) {
@@ -349,6 +350,14 @@ void Server::configure() {
 }
 
 void Server::updateIndexes() {
+  // check if index exists:
+  for (auto entry = _projects.begin(); entry != _projects.end(); ++entry) {
+    if (!exists(entry->second.second)) {
+      // force update since one index is missing!
+      _updateIndex = true;
+      break;
+    }
+  }
   if (_updateIndex) {
     fmt::print(fmt::emphasis::bold | fg(fmt::color::green),
                START_UPDATE_INDEX_MSG);
@@ -362,9 +371,11 @@ void Server::updateIndexes() {
       FullTextIndexer indexer(index, source);
       indexer.update();
     }
+    saveTimestampToJson(_indexTimestamp);
     fmt::print(fmt::emphasis::bold | fg(fmt::color::green),
                FINISHED_UPDATE_INDEX_MSG);
   }
+  _indexCreationTime = loadTimestampFromJson(_indexTimestamp);
 }
 void Server::addGitResult(sol::state& lua, const std::string path) {
   Git gitProcess(_git);
@@ -474,7 +485,7 @@ std::string Server::load(const ServerPrivData& priv) {
   lua["title"] = "CodeBrowser";
   lua["pageTitle"] = "Gwerners's CodeBrowser";
   lua["project"] = priv._project;
-  lua["indexCreationTime"] = "Thu May 09 03:59:59 PDT 2024 (*not updated!)";
+  lua["indexCreationTime"] = priv._indexCreationTime;
   lua["githubUrl"] = "https://github.com/gwerners";
   lua["path"] = priv._path;
   lua["hash"] = priv._hash;
@@ -545,6 +556,7 @@ void Server::run() {
   ([&](const crow::request& req) {
     std::cout << "req.url " << req.url << std::endl;
     ServerPrivData priv;
+    priv._indexCreationTime = _indexCreationTime;
     priv._filename = _htmlRoot + "/" + _index;
     fmt::print(fmt::emphasis::bold | fg(fmt::color::blue), "serving {} \n",
                priv._filename);
@@ -562,6 +574,7 @@ void Server::run() {
     std::string body = DEFAULT_BODY;
     ServerPrivData priv;
     fillVariables(_projects, req, priv);
+    priv._indexCreationTime = _indexCreationTime;
     priv._filename = _htmlRoot + "/" + _folders;
     body = load(priv);
     return crow::response{body};
@@ -571,6 +584,7 @@ void Server::run() {
     std::string body = DEFAULT_BODY;
     ServerPrivData priv;
     fillVariables(_projects, req, priv);
+    priv._indexCreationTime = _indexCreationTime;
     priv._filename = _htmlRoot + "/" + _editor;
     body = load(priv);
     fmt::print(fmt::emphasis::bold | fg(fmt::color::red), "serving {} \n",
@@ -598,6 +612,7 @@ void Server::run() {
   ([&](const crow::request& req) {
     ServerPrivData priv;
     fillVariables(_projects, req, priv);
+    priv._indexCreationTime = _indexCreationTime;
     std::cout << "pwd " << std::filesystem::current_path() << std::endl;
     std::string content;
     std::string::size_type idx = priv._root.rfind('.');
@@ -718,6 +733,7 @@ void Server::run() {
   ([&](const crow::request& req) {
     ServerPrivData priv;
     fillVariables(_projects, req, priv);
+    priv._indexCreationTime = _indexCreationTime;
     priv._useGit = true;
     if (fs::is_directory(priv._root)) {
       priv._filename = _htmlRoot + "/" + _historyFolder;
@@ -929,6 +945,7 @@ void Server::run() {
   ([&](const crow::request& req) {
     ServerPrivData priv;
     fillVariables(_projects, req, priv);
+    priv._indexCreationTime = _indexCreationTime;
     priv._filename = _htmlRoot + "/" + _diff;
     return crow::response{load(priv)};
   });
@@ -939,6 +956,7 @@ void Server::run() {
     std::string body = DEFAULT_BODY;
     ServerPrivData priv;
     fillVariables(_projects, req, priv);
+    priv._indexCreationTime = _indexCreationTime;
     priv._filename = _htmlRoot + "/" + _annotate;
     priv._useGit = true;
     return crow::response{load(priv)};
@@ -959,6 +977,7 @@ void Server::run() {
     std::cout << "req.url " << req.url << std::endl;
     ServerPrivData priv;
     fillVariables(_projects, req, priv);
+    priv._indexCreationTime = _indexCreationTime;
     if (!priv._project.empty() && !priv._fullTextQuery.empty()) {
       std::cout << "query is [" << priv._fullTextQuery << "]" << std::endl;
       FullTextSearcher searcher(_projects[priv._project].second);

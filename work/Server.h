@@ -31,6 +31,7 @@ class ServerPrivData {
   std::string _r2;
   std::string _fullTextQuery;
   std::string _regexpTextQuery;
+  std::string _indexCreationTime;
   bool _updateIndex;
 };
 class Server {
@@ -63,7 +64,9 @@ class Server {
   std::string _lsp;
   std::string _git;
   std::string _search;
+  std::string _indexCreationTime;
   bool _updateIndex;
+  std::string _indexTimestamp;
   std::vector<SearchInfo> _searchInfo;
   std::set<std::string> _cppSuffix;
 };

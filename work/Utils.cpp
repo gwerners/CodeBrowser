@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <fstream>
+#include <nlohmann/json.hpp>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -11,6 +12,7 @@
 #include "fmt/format.h"
 
 namespace fs = std::filesystem;
+using json = nlohmann::json;
 
 void sigchld_handler(int) {
   int status;
@@ -74,4 +76,66 @@ std::vector<std::string> split(const std::string& line, char delimiter) {
     result.push_back(item);
   }
   return result;
+}
+
+std::string getCurrentTimeFormatted() {
+  auto now = std::chrono::system_clock::now();
+  auto now_time_t = std::chrono::system_clock::to_time_t(now);
+  auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    now.time_since_epoch())
+                    .count() %
+                1000;
+
+  std::tm tm = *std::localtime(&now_time_t);
+
+  // Format: 2025/5/3 15:00:00.050 - Thu July 03 15:00:00 PDT 2025
+  char buffer[100];
+  std::strftime(buffer, sizeof(buffer), "%Y/%m/%d %H:%M:%S", &tm);
+
+  std::ostringstream oss;
+  oss << buffer << "." << std::setfill('0') << std::setw(3) << now_ms << " - ";
+
+  std::strftime(buffer, sizeof(buffer), "%a %B %d %H:%M:%S %Z %Y", &tm);
+  oss << buffer;
+
+  return oss.str();
+}
+
+bool saveTimestampToJson(const std::string& filePath) {
+  try {
+    fs::create_directories(fs::path(filePath).parent_path());
+
+    json j;
+    j["timestamp"] = getCurrentTimeFormatted();
+
+    std::ofstream file(filePath);
+    if (!file.is_open())
+      return false;
+
+    file << j.dump(4);  // indentado
+    file.close();
+
+    return true;
+  } catch (...) {
+    return false;
+  }
+}
+std::string loadTimestampFromJson(const std::string& filePath) {
+  try {
+    std::ifstream file(filePath);
+    if (!file.is_open())
+      return "Erro ao abrir arquivo.";
+
+    json j;
+    file >> j;
+    file.close();
+
+    if (j.contains("timestamp")) {
+      return j["timestamp"];
+    }
+
+    return "Campo 'timestamp' não encontrado.";
+  } catch (...) {
+    return "Erro ao ler o arquivo ou JSON inválido.";
+  }
 }

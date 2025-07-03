@@ -16,6 +16,7 @@ constexpr const char* CONFIG_JSON = R"json(
     "diff": "diff.html",
     "search": "search.html",
     "annotate": "annotate.html",
+    "index-timestamp" : "/home/gwerners/projects/CodeWayfinder/index/index.timestamp",
     "projects": [
         {
             "name":"CodeBrowser",
