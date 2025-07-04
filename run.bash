@@ -100,6 +100,7 @@ function getAll {
   #get asio https://github.com/chriskohlhoff/asio.git
   #get compiledb https://github.com/nickdiego/compiledb.git
   #get sol2 https://github.com/ThePhD/sol2.git
+  #get tiny-regex-c https://github.com/kokke/tiny-regex-c.git
   get lucy-clownfish https://github.com/apache/lucy-clownfish.git
   get lucy https://github.com/apache/lucy.git
  

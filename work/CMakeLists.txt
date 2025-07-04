@@ -81,7 +81,9 @@ set(FMT
 set(SOL
   ${CMAKE_SOURCE_DIR}/sol/minilua.c
 )
-
+set(TINY_REGEXP
+  ${CMAKE_SOURCE_DIR}/tiny-regex-c/re.c
+)
 set(SRC
   main.cpp
   Server.cpp
@@ -110,6 +112,7 @@ include_directories(${CMAKE_SOURCE_DIR}/fmt)
 #include_directories(${CMAKE_SOURCE_DIR}/sol)
 include_directories(${CMAKE_SOURCE_DIR}/crow)
 include_directories(${CMAKE_SOURCE_DIR}/asio)
+include_directories(${CMAKE_SOURCE_DIR}/tiny-regex-c)
 
 include_directories(/usr/lib/llvm-18/include)
 link_directories(/usr/lib/llvm-18/lib)
@@ -117,7 +120,7 @@ link_directories(/usr/lib/llvm-18/lib)
 include_directories(${CMAKE_SOURCE_DIR}/env/include)
 link_directories(${CMAKE_SOURCE_DIR}/env/lib)
 
-add_executable(${MY_PROJECT_NAME} ${SRC} ${FMT} ${SOL})
+add_executable(${MY_PROJECT_NAME} ${SRC} ${FMT} ${SOL} ${TINY_REGEXP})
 target_link_libraries(${MY_PROJECT_NAME} pthread clownfish lucy clang dl)
 target_compile_features(${MY_PROJECT_NAME} PRIVATE ${MY_COMPILER_FEATURES})
 

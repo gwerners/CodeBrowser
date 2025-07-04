@@ -20,7 +20,8 @@ class SearchResult {
 class FullTextSearcher {
  public:
   FullTextSearcher(const std::string& path);
-  std::vector<SearchResult> search(const std::string& needle);
+  std::vector<SearchResult> search(const std::string& needle,
+                                   const std::string& regexp);
 
  private:
   std::string _indexPath;

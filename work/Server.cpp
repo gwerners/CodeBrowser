@@ -981,7 +981,8 @@ void Server::run() {
     if (!priv._project.empty() && !priv._fullTextQuery.empty()) {
       std::cout << "query is [" << priv._fullTextQuery << "]" << std::endl;
       FullTextSearcher searcher(_projects[priv._project].second);
-      auto results = searcher.search(priv._fullTextQuery);
+      auto results =
+          searcher.search(priv._fullTextQuery, priv._regexpTextQuery);
       fs::path last, p;
       std::map<std::string, std::map<std::string, std::list<SearchLine>>> info;
       for (auto& entry : results) {

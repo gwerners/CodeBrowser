@@ -2,10 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <cstdio>
 #include "nlohmann/json.hpp"
 
 #define CFISH_USE_SHORT_NAMES
 #define LUCY_USE_SHORT_NAMES
+
 #include "Clownfish/String.h"
 #include "Clownfish/Vector.h"
 #include "Lucy/Document/HitDoc.h"
@@ -17,6 +19,8 @@
 #include "Lucy/Search/QueryParser.h"
 #include "Lucy/Search/TermQuery.h"
 
+#include "re.h"
+
 using json = nlohmann::json;
 
 FullTextSearcher::FullTextSearcher(const std::string& path) : _indexPath(path) {
@@ -24,9 +28,13 @@ FullTextSearcher::FullTextSearcher(const std::string& path) : _indexPath(path) {
   lucy_bootstrap_parcel();
 }
 
-std::vector<SearchResult> FullTextSearcher::search(const std::string& needle) {
+std::vector<SearchResult> FullTextSearcher::search(const std::string& needle,
+                                                   const std::string& regexp) {
   std::vector<SearchResult> result;
   const char* query_c = needle.c_str();
+  re_t query_regex;
+  query_regex = re_compile(regexp.c_str());
+  bool useRegexp = !regexp.empty();
 
   // printf("Searching for: %s\n\n", query_c);
 
@@ -56,15 +64,27 @@ std::vector<SearchResult> FullTextSearcher::search(const std::string& needle) {
     String* url = (String*)HitDoc_Extract(hit, url_str);
     char* url_c = Str_To_Utf8(url);
 
-    String* excerpt = Highlighter_Create_Excerpt(highlighter, hit);
+    String* excerpt = (String*)HitDoc_Extract(hit, content_str);
     char* excerpt_c = Str_To_Utf8(excerpt);
 
-    // printf("Result %d: %s (%s)\n%s\n\n", i, line_c, url_c, excerpt_c);
+    String* highlighted = Highlighter_Create_Excerpt(highlighter, hit);
+    char* highlighted_c = Str_To_Utf8(highlighted);
+
+    // printf("Result %d: %s (%s)\n%s\n", i, line_c, url_c, excerpt_c);
+    // printf("use %d regexp %s\n", useRegexp, regexp.c_str());
+
     // json ret = {{"line", line_c}, {"url", url_c}, {"excerpt", excerpt_c}};
     // printf("%d %s\n", i, ret.dump(4).c_str());
-    SearchResult sr(line_c, url_c, excerpt_c);
-    result.push_back(sr);
 
+    std::string check(excerpt_c);
+    int len;
+    if ((useRegexp && re_matchp(query_regex, check.c_str(), &len) != -1) ||
+        (!useRegexp)) {
+      SearchResult sr(line_c, url_c, highlighted_c);
+      result.push_back(sr);
+    }
+
+    free(highlighted_c);
     free(excerpt_c);
     free(url_c);
     free(line_c);

@@ -14,9 +14,13 @@ FMT += \
 LUA += \
     sol/minilua.c
 
+TINY_REGEXP += \
+    tiny-regex-c/re.c
+
 SOURCES += \
         $${FMT} \
         $${LUA} \
+        $${TINY_REGEXP} \
         work/FullTextIndexer.cpp \
         work/Git.cpp \
         work/PipeAdapter.cpp \
@@ -46,5 +50,5 @@ HEADERS += \
     work/FullTextSearcher.h \
     work/minilua.h
 
-INCLUDEPATH += crow asio sol env/include /usr/lib/llvm-18/include
+INCLUDEPATH += crow asio sol tiny-regex-c env/include /usr/lib/llvm-18/include
 LIBS += -L"$$_PRO_FILE_PWD_/env/lib" -L/usr/lib/llvm-18/lib -lclownfish -llucy -lclang

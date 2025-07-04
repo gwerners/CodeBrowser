@@ -21,7 +21,7 @@ void sigchld_handler(int) {
   // Reap all terminated child processes
   while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
     // Handle terminated child process
-    fmt::print(fg(fmt::color::blue),
+    fmt::print(fg(fmt::color::red),
                "{}:{} - Child process {} terminated with status {}\n",
                __FUNCTION__, __LINE__, pid, WEXITSTATUS(status));
   }
