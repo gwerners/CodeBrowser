@@ -4,7 +4,7 @@ function renderResults() {
     const dirRow = document.createElement('tr');
     dirRow.className = 'dir';
     const dirCell = document.createElement('td');
-    dirCell.colSpan = 3;
+    dirCell.colSpan = 2;
     dirCell.innerHTML = `<a href="${result.url}">${result.dir}</a>`;
     dirRow.appendChild(dirCell);
     table.appendChild(dirRow);

@@ -472,6 +472,7 @@ std::string Server::load(const ServerPrivData& priv) {
   sol::table tblProjects = lua.create_table("projects");
   for (auto& entry : _projects) {
     tblProjects[entry.first] = entry.second;
+    std::cout << "projects " << entry.first << std::endl;
   }
 
   // Create a vector of commits
@@ -589,6 +590,7 @@ void Server::run() {
     body = load(priv);
     fmt::print(fmt::emphasis::bold | fg(fmt::color::red), "serving {} \n",
                priv._filename);
+
     return crow::response{body};
   });
 
@@ -596,15 +598,16 @@ void Server::run() {
       .methods("GET"_method)([&](crow::response& res, std::string path) {
         std::string root = _htmlRoot;
         root += "/files/" + path;
-        fmt::print(fmt::emphasis::bold | fg(fmt::color::yellow),
+        fmt::print(fmt::emphasis::bold | fg(fmt::color::red),
                    "file serving {} \n", root);
         serveFile(root, res);
+        std::cout << "files/ " << root << std::endl;
       });
   CROW_ROUTE(app, "/monaco/<path>")
       .methods("GET"_method)([&](crow::response& res, std::string path) {
         std::string root = _htmlRoot;
         root += "/monaco/" + path;
-        fmt::print(fmt::emphasis::bold | fg(fmt::color::yellow),
+        fmt::print(fmt::emphasis::bold | fg(fmt::color::red),
                    "file serving {} \n", root);
         serveFile(root, res);
       });
@@ -635,7 +638,7 @@ void Server::run() {
       //     PipeCommand::cmd(git,"blame",hash.c_str(),"--",path.c_str());
       // }
       priv._useGit = true;
-      std::cout << "content " << content << std::endl;
+      // std::cout << "content " << content << std::endl;
     } else {
       if (!priv._hash.empty()) {
         // git show 1234:path/to/file.txt
@@ -647,6 +650,8 @@ void Server::run() {
       } else {
         content = readFile(priv._root);
         replace_invalid_utf8(content);
+        fmt::print(fmt::emphasis::bold | fg(fmt::color::yellow),
+                   "readFile [{}]\n", priv._root);
       }
     }
 
@@ -667,20 +672,28 @@ void Server::run() {
               fmt::print(fmt::emphasis::bold | fg(fmt::color::green),
                          "didClose Received from clangd [{}]\n", msg);
           */
-          std::string msg;
-          DidOpen didOpen(_lsp, priv._root, content);
-          didOpen.send();
-          msg = didOpen.receive();
-          fmt::print(fmt::emphasis::bold | fg(fmt::color::green),
-                     "didOpen Received from clangd [{}]\n", msg);
-          std::cout << "last file " << priv._root << std::endl;
-          static bool once = true;
-          if (once) {
+          // avoid blocking using thread while doing requests to clangd
+          // static bool once = true;
+          std::thread t1([=] {
+            std::string msg;
+            DidOpen didOpen(_lsp, priv._root, content);
+            // fmt::print(fmt::emphasis::bold | fg(fmt::color::green),
+            //            "didOpen Send [{}]\n", content);
+            didOpen.send();
             msg = didOpen.receive();
             fmt::print(fmt::emphasis::bold | fg(fmt::color::green),
                        "didOpen Received from clangd [{}]\n", msg);
-            once = false;
-          }
+            std::cout << "last file " << priv._root << std::endl;
+
+            /*if (once) {
+              msg = didOpen.receive();
+              fmt::print(fmt::emphasis::bold | fg(fmt::color::green),
+                         "didOpen Received from clangd [{}]\n", msg);
+              once = false;
+            }*/
+          });
+          t1.detach();
+
           _openFiles.insert(priv._root);
         }
       }
@@ -990,6 +1003,12 @@ void Server::run() {
         std::string filename = p.filename();
         p.remove_filename();
         std::string dir = p.string();
+        entry.excerpt.erase(
+            std::remove(entry.excerpt.begin(), entry.excerpt.end(), '\n'),
+            entry.excerpt.cend());
+        entry.excerpt.erase(
+            std::remove(entry.excerpt.begin(), entry.excerpt.end(), '\r'),
+            entry.excerpt.cend());
         info[dir][filename].push_back({entry.line, entry.excerpt});
         std::cout << entry.line << ":" << entry.url << ":" << entry.excerpt
                   << std::endl;
@@ -1010,6 +1029,7 @@ void Server::run() {
           for (auto& _line : _file.second) {
             std::cout << "      " << _line.line << " " << _line.excerpt
                       << std::endl;
+
             file.lines.push_back({_line.line, _line.excerpt});
           }
           info.files.push_back(file);
@@ -1072,10 +1092,17 @@ void Server::run() {
     std::string url =
         fmt::format("{}/files?project={}&path={}", _url, project, path);
     json headerSourceResponse = {{"url", url}};
+    fmt::print(fmt::emphasis::bold | fg(fmt::color::red),
+               "header_source requesting [{}]\n", headerSourceResponse.dump());
     auto res = crow::response{headerSourceResponse.dump()};
     res.add_header("Content-Type", "application/json");
     return res;
   });
+  /*CROW_ROUTE(app, "/<path>")
+  ([](std::string path) {
+    std::cout << "DEBUG: Request path = " << path << std::endl;
+    return "ok";
+  });*/
   Initialize initialize(_lsp);
   initialize.send();
   std::string msg = initialize.receive();

@@ -201,7 +201,7 @@ EOF
 }
 function run {
   #need llvm path for llvm-symbolizer
-  export PATH="$PATH:/usr/lib/llvm-18/bin"
+  export PATH="$PATH:/usr/lib/llvm-19/bin"
   ./build/work/lsp-client
 }
 ###############################################################################

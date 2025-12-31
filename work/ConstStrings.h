@@ -24,20 +24,20 @@ constexpr const char* CONFIG_JSON = R"json(
             "index":"/home/gwerners/projects/CodeWayfinder/index/CodeBrowser-index"
         },
         {
-            "name":"three.js",
-            "source":"/home/gwerners/projects/three.bgfx/three.js",
-            "index":"/home/gwerners/projects/CodeWayfinder/index/three-js-index"
+            "name":"TinyGL",
+            "source":"/home/gwerners/projects/compiledb-tool/TinyGL-0.4.1/TinyGL",
+            "index":"/home/gwerners/projects/compiledb-tool/index/TinyGL-index"
         },
         {
-            "name":"tinygltf",
-            "source":"/home/gwerners/projects/three.bgfx/tinygltf",
-            "index":"/home/gwerners/projects/CodeWayfinder/index/tinygltf-index"
+            "name":"renderer-master",
+            "source":"/home/gwerners/projects/compiledb-tool/renderer-master",
+            "index":"/home/gwerners/projects/compiledb-tool/index/renderer-master-index"
         }
     ],
     "lsp" : "clangd",
     "git" : "/usr/bin/git",
     "cpp-suffix" : ["cpp","c","h","hpp"],
-    "update-index" : false
+    "update-index" : true
 })json";
 //"lsp" : "clangd",
 //"lsp" :/"/home/gwerners/development/CodeWayfinder/lsp-client/lsp-client/ccls/Release/ccls",

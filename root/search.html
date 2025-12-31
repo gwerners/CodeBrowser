@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="robots" content="nofollow">
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <title>CodeBrowser Search Results</title>
 <!--%lua%
 print("  <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/new_utils.js\"></script>\n")
@@ -29,7 +28,7 @@ for k, v in pairs(projects) do
   if (project == k) then
     print("          <option value=\"" .. k .. "\" selected=\"selected\">" .. k .. "</option>\n")
   else
-    print("          <option value=\"" .. k .. "\"\"  >" .. k .. "</option>\n")
+    print("          <option value=\"" .. k .. "\"  >" .. k .. "</option>\n")
   end
 end 
 %lua%-->
@@ -55,7 +54,7 @@ print("      <p><a href=\"" .. githubUrl .. "\" title=\"Served by " .. serverNam
 print("      <p>Indexes created " .. indexCreationTime .. "</p>\n")
 %lua%-->
   </div>
-
+</div>
 <script>
 <!--%lua%
 if searchInfo then

@@ -86,7 +86,8 @@ input.submit {
   width: 100%;
 }
 
-#results table {
+#results table,
+#results #resultsTable {
   border-collapse: collapse;
   width: 100%;
 }

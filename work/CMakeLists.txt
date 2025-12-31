@@ -114,8 +114,8 @@ include_directories(${CMAKE_SOURCE_DIR}/crow)
 include_directories(${CMAKE_SOURCE_DIR}/asio)
 include_directories(${CMAKE_SOURCE_DIR}/tiny-regex-c)
 
-include_directories(/usr/lib/llvm-18/include)
-link_directories(/usr/lib/llvm-18/lib)
+include_directories(/usr/lib/llvm-19/include)
+link_directories(/usr/lib/llvm-19/lib)
 
 include_directories(${CMAKE_SOURCE_DIR}/env/include)
 link_directories(${CMAKE_SOURCE_DIR}/env/lib)
