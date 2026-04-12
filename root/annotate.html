@@ -1,77 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<!--%lua% if theme == "dark" then print('<html lang="en" class="dark">') else print('<html lang="en">') end %lua%-->
 <head>
   <meta charset="UTF-8">
   <title>CodeBrowser Annotate</title>
 <!--%lua%
-print("  <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/new_utils.js\"></script>\n")
-print("  <link rel=\"stylesheet\" type=\"text/css\" media=\"all\" title=\"Default\" href=\"" .. serverUrl .. "/files/new_style.css\">\n")
-print("  <script type=\"text/javascript\" src=\"" .. serverUrl .. "/monaco/min/vs/loader.js\"></script>\n")
+print("  <script src=\"" .. serverUrl .. "/files/app.js\"></script>\n")
+print("  <link rel=\"stylesheet\" href=\"" .. serverUrl .. "/files/style.css\">\n")
+print("  <script src=\"" .. serverUrl .. "/monaco/min/vs/loader.js\"></script>\n")
 %lua%-->
-    <style>
-        #container {
-            width: 100%;
-            height: 500px;
-        }
-
-        .myLineHighlight {
-            background-color: #7e804d;
-            opacity: 0.5;
-        }
-        #editor {
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-        }
-        #overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #385170;
-            padding: 20px;
-            border: 1px solid #ccc;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            z-index: 20;
-            max-width: 80%;
-            max-height: 80%;
-            overflow-y: auto;
-        }
-
-        #overlay-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        #overlay-table td {
-            vertical-align: middle;
-            padding: 0;
-            position: relative;
-        }
-
-        #overlay-header h2 {
-            margin: 0;
-        }
-
-        #close-overlay-btn {
-            background: none;
-            border: none;
-            font-size: 1.5em; /* Larger button for testing */
-            cursor: pointer;
-            padding: 0;
-            margin: 0;
-            z-index: 21; /* Ensure the button is above other content */
-            display: inline-block;
-            color: black; /* Set color to ensure it's visible */
-            position: relative; /* Add relative positioning to avoid issues */
-        }
-
-        #close-overlay-btn:hover {
-            color: red; /* Change color on hover to check visibility */
-        }
-
-    </style>
 </head>
 <body>
   <div id="page">
@@ -79,9 +15,9 @@ print("  <script type=\"text/javascript\" src=\"" .. serverUrl .. "/monaco/min/v
       <div id="Masthead">
 <!--%lua%
 if (hash == nil or hash == '') then
-  print("        Contents of <a href=\"" .. serverUrl .. "/folders?project=" .. project .. "&path=" .. upperPath .. "\">" .. project .. "/" .. path .. "</a>\n")
+  print("        Annotate <a href=\"" .. serverUrl .. "/folders?project=" .. project .. "&path=" .. upperPath .. "\">" .. project .. "/" .. path .. "</a>\n")
 else
-  print("        Contents of <a href=\"" .. serverUrl .. "/folders?project=" .. project .. "&path=" .. upperPath .. "\">" .. project .. "/" .. path .. "#" .. hash .. "</a>\n")
+  print("        Annotate <a href=\"" .. serverUrl .. "/folders?project=" .. project .. "&path=" .. upperPath .. "\">" .. project .. "/" .. path .. "#" .. hash .. "</a>\n")
 end
 %lua%-->
       </div>
@@ -96,127 +32,51 @@ if (hash == nil or hash == '') then
 else
   print("            <li><a href=\"" .. serverUrl .. "/files?project=" .. project .. "&path=" .. path .. "&hash=" .. hash .. "\">Original</a></li>\n")
 end
-%lua%-->  
+%lua%-->
           </ul>
         </div>
       </form>
     </div>
 
-
-        <div id="editorContainer" >
-        <div id="editor" style="height: calc(100vh - 100px);"></div>
-
-
+    <div id="editorContainer">
+      <div id="editor" style="height: calc(100vh - 100px);"></div>
+    </div>
 
     <div id="footer">
 <!--%lua%
-print("        <p><a href=\"" .. githubUrl .. "\" title=\"Served by " .. serverName .. "\"><span id=\"fti\"></span></a></p>\n")
-print("        <p>Indexes created " .. indexCreationTime .. "</p>\n")
+print("      <p><a href=\"" .. githubUrl .. "\" title=\"Served by " .. serverName .. "\"><span id=\"fti\"></span></a></p>\n")
+print("      <p>Indexes created " .. indexCreationTime .. "</p>\n")
 %lua%-->
     </div>
   </div>
 
- <script>
-         const editorContainer = document.getElementById('editor');
-        async function fetchHoverInfo(url,lineNumber, column) {
-            try {
-                console.log(url);
-                const response = await fetch(`${url}&line=${lineNumber}&column=${column}`);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                console.error('Failed to fetch hover info:', error);
-                return null;
-            }
-        }
-        async function getFunctionDefinitionFile(url, functionName, lineNumber, character) {
-            try {
-                const response = await fetch(`${url}&function=${functionName}&line=${lineNumber}&character=${character}`);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                if (data.error) {
-                    throw new Error(data.error.message);
-                }
-                return data.result;  // Assuming the server response has the file information in result
-            } catch (error) {
-                console.error('Failed to fetch function definition file:', error);
-                return null;
-            }
-        }
-        function loadCppContent(content, lang) {
+  <script>
 <!--%lua%
-print("            require.config({ paths: { 'vs': '" .. serverUrl .. "/monaco/min/vs' }});\n");
+local h = hash or ''
+print("    var editorConfig = {\n")
+print("      monacoPath: '" .. serverUrl .. "/monaco/min/vs',\n")
+print("      fileUrl: '" .. serverUrl .. "/bin?project=" .. project .. "&path=" .. path .. "&blame=" .. h .. "',\n")
+print("      hoverUrl: '" .. serverUrl .. "/hover?project=" .. project .. "&path=" .. path .. "',\n")
+print("      blameBaseUrl: '" .. serverUrl .. "/files?project=" .. project .. "&path=" .. path .. "&hash=',\n")
+print("      lineNumber: 0,\n")
+print("      lang: '" .. suffix .. "',\n")
+print("      readOnly: true,\n")
+print("      isAnnotate: true,\n")
+print("    };\n")
 %lua%-->
-            require(['vs/editor/editor.main'], (monaco) => {
-                const editor = monaco.editor.create(editorContainer, {
-                    value: content,
-                    language: lang,
-                    theme: 'vs-dark'
-                });
-                //"vs" | "vs-dark" | "hc-black" | "hc-light"
-                // Register the command in Monaco Editor
-                editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.F12, async () => {
-                const position = editor.getPosition();
-                const model = editor.getModel();
-                const lineNumber = position.lineNumber;
-                const character = position.column;
-                const word = model.getWordAtPosition(position);
-                if (!word) {
-                    return;
-                }
-                const functionName = word.word;
-                try {
-<!--%lua%
-print("                const definition = await getFunctionDefinitionFile(\"" .. serverUrl .. "/definition?project=" .. project .. "&path=" .. path .. "\", functionName, lineNumber, character);\n")
-%lua%-->
-                    if (definition && definition.uri) {
-                        window.location.href = definition.uri;  // Redirect to the definition location
-                    } else {
-                        console.error('Definition not found');
-                    }
-                } catch (error) {
-                    console.error('Error fetching definition:', error);
-                }
-                });
-<!--%lua%
-print("                monaco.languages.registerHoverProvider('" .. suffix .. "', {\n")
-%lua%-->
-                    provideHover: async (model, position) => {
-                        const lineNumber = position.lineNumber;
-                        const column = position.column;
-                        try {
-<!--%lua%
-print("                            const hoverInfo = await fetchHoverInfo(\"" .. serverUrl .. "/hover?project=" .. project .. "&path=" .. path .. "\", lineNumber, column);\n")
-%lua%-->
-                            if (!hoverInfo) {
-                                return null;
-                            }
-                            return {
-                                contents: [
-                                    { value: hoverInfo.description }
-                                ]
-                            };
-                        } catch (error) {
-                            console.error('Error fetching hover info:', error);
-                            return null;
-                        }
-                    }
-                });
-            });
-        }
-<!--%lua%
-print("        let fileUrl = '" .. serverUrl .. "/bin?project=" .. project .. "&path=" .. path .. "&blame=" .. hash .. "'\n")
-%lua%-->
-        fetch(fileUrl)
-            .then(response => response.text())
-            .then(data => loadCppContent(data,'cpp'))
-            .catch(error => console.error('Error fetching C++ content:', error));
+
+    fetch(editorConfig.fileUrl)
+      .then(response => response.text())
+      .then(content => {
+        initMonacoEditor(
+          document.getElementById('editor'),
+          content,
+          editorConfig.lang,
+          editorConfig.lineNumber,
+          editorConfig
+        );
+      })
+      .catch(error => console.error('Error loading file:', error));
   </script>
 </body>
 </html>
-

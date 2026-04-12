@@ -1,60 +1,59 @@
 <!DOCTYPE html>
-<html lang="en">
+<!--%lua% if theme == "dark" then print('<html lang="en" class="dark">') else print('<html lang="en">') end %lua%-->
 <head>
   <meta charset="UTF-8">
   <meta name="robots" content="nofollow">
   <title>CodeBrowser Search Results</title>
 <!--%lua%
-print("  <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/new_utils.js\"></script>\n")
-print("  <link rel=\"stylesheet\" type=\"text/css\" media=\"all\" title=\"Default\" href=\"" .. serverUrl .. "/files/new_style.css\">\n")
+print("  <script src=\"" .. serverUrl .. "/files/app.js\"></script>\n")
+print("  <link rel=\"stylesheet\" href=\"" .. serverUrl .. "/files/style.css\">\n")
 %lua%-->
 </head>
 <body>
 <div id="page">
-    <div id="sbar">
-      <form id="sbox" action="search">
-        <div id="qtbl">
-          <table>
+  <div id="sbar">
+    <form id="sbox" action="search">
+      <div id="qtbl">
+        <table>
 <!--%lua%
-print("            <tr><td><label for=\"s1\">Full&nbsp;Search:</label></td><td><input class=\"q\" name=\"q\" id=\"s1\" tabindex=\"1\" value=\"" .. fullTextQuery .. "\"></td></tr>\n")
-print("            <tr><td><label for=\"s2\">RegExp(filter):</label></td><td><input class=\"q\" name=\"r\" id=\"s2\" tabindex=\"2\" value=\"" .. regexpTextQuery .. "\"></td></tr>\n")
+print("          <tr><td><label for=\"s1\">Full&nbsp;Search:</label></td><td><input class=\"q\" name=\"q\" id=\"s1\" tabindex=\"1\" value=\"" .. fullTextQuery .. "\"></td></tr>\n")
+print("          <tr><td><label for=\"s2\">RegExp(filter):</label></td><td><input class=\"q\" name=\"r\" id=\"s2\" tabindex=\"2\" value=\"" .. regexpTextQuery .. "\"></td></tr>\n")
 %lua%-->
-          </table>
-        </div>
-        <div id="ptbl">
-          <select size="4" class="q" id="project" name="project" ondblclick="javascript: goFirstProject();">
+        </table>
+      </div>
+      <div id="ptbl">
+        <select size="4" class="q" id="project" name="project" ondblclick="goFirstProject();">
 <!--%lua%
-for k, v in pairs(projects) do 
+for k, v in pairs(projects) do
   if (project == k) then
-    print("          <option value=\"" .. k .. "\" selected=\"selected\">" .. k .. "</option>\n")
+    print("          <option value=\"" .. k .. "\" selected>" .. k .. "</option>\n")
   else
-    print("          <option value=\"" .. k .. "\"  >" .. k .. "</option>\n")
+    print("          <option value=\"" .. k .. "\">" .. k .. "</option>\n")
   end
-end 
+end
 %lua%-->
-          </select>
-        </div>
-        <p>
-          <input class="submit" type="submit" value="Search" tabindex="9">
-          <input class="submit" type="button" value="Clear" onclick="clearForm()" tabindex="10">
-          <!--button type="button" onclick="openHelp()" tabindex="11">Help</button-->
-        </p>
-      </form>
-    </div>
+        </select>
+      </div>
+      <p>
+        <input class="submit" type="submit" value="Search" tabindex="9">
+        <input class="submit" type="button" value="Clear" onclick="clearForm()" tabindex="10">
+      </p>
+    </form>
+  </div>
+
   <div id="results">
     <p class="pagetitle">Search Results:</p>
-    <table id="resultsTable">
-      <!-- dynamic rows here -->
-    </table>
+    <table id="resultsTable"></table>
   </div>
 
   <div id="footer">
 <!--%lua%
-print("      <p><a href=\"" .. githubUrl .. "\" title=\"Served by " .. serverName .. "\"><span id=\"fti\"></span></a></p>\n")
-print("      <p>Indexes created " .. indexCreationTime .. "</p>\n")
+print("    <p><a href=\"" .. githubUrl .. "\" title=\"Served by " .. serverName .. "\"><span id=\"fti\"></span></a></p>\n")
+print("    <p>Indexes created " .. indexCreationTime .. "</p>\n")
 %lua%-->
   </div>
 </div>
+
 <script>
 <!--%lua%
 if searchInfo then
@@ -62,7 +61,7 @@ if searchInfo then
   local dirComma = ""
   for i = 1, #searchInfo do
     local si = searchInfo[i]
-    local SearchFile = si.files
+    local files = si.files
     local dir = si.path
     if (si.path == nil or si.path == "") then
       dir = "."
@@ -72,17 +71,20 @@ if searchInfo then
     print("    url: \"" .. serverUrl .. "/folders?project=" .. project .. "&path=" .. si.path .. "\",\n")
     print("    entries: [\n")
     local entryComma = ""
-    for j = 1, #SearchFile do
-      local sf = SearchFile[j]
-      local SeachLine = sf.lines
+    for j = 1, #files do
+      local sf = files[j]
+      local lines = sf.lines
+      local sep = ""
+      if si.path ~= "" and si.path ~= "." then sep = "/" end
+      local filePath = si.path .. sep .. sf.name
       print("      " .. entryComma .. "{\n")
       print("        file: \"" .. sf.name .. "\",\n")
-      print("        url: \"" .. serverUrl .. "/files?project=" .. project .. "&path=" .. si.path .. sf.name .. "\",\n")
+      print("        url: \"" .. serverUrl .. "/files?project=" .. project .. "&path=" .. filePath .. "\",\n")
       print("        lines: [\n")
       local lineComma = ""
-      for k = 1, #SeachLine do
-        local sl = SeachLine[k]
-        print("          " .. lineComma .. "{ num: \"" .. sl.line .. "\", content: \"" .. sl.excerpt .. "\" , url: \"" .. serverUrl .. "/files?project=" .. project .. "&path=" .. si.path .. sf.name .."&line=" .. sl.line .. "\"}\n")
+      for k = 1, #lines do
+        local sl = lines[k]
+        print("          " .. lineComma .. "{ num: \"" .. sl.line .. "\", content: \"" .. sl.excerpt .. "\", url: \"" .. serverUrl .. "/files?project=" .. project .. "&path=" .. filePath .. "&line=" .. sl.line .. "\" }\n")
         lineComma = ","
       end
       print("        ]\n")
@@ -96,7 +98,6 @@ if searchInfo then
   print("];\n")
 end
 %lua%-->
-
 renderResults();
 </script>
 </body>

@@ -1,67 +1,37 @@
 <!DOCTYPE html>
-<html lang="en" class="diff">
-   <head>
-      <meta charset="UTF-8">
-      <meta name="robots" content="noindex,nofollow">
-      <title>CodeBrowser Diff</title>
+<!--%lua% if theme == "dark" then print('<html lang="en" class="dark">') else print('<html lang="en">') end %lua%-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="robots" content="noindex,nofollow">
+  <title>CodeBrowser Diff</title>
 <!--%lua%
-print("      <link rel=\"stylesheet\" href=\"" .. serverUrl .. "/monaco/min/vs/editor/editor.main.css\">\n");
-print("      <script src=\"" .. serverUrl .. "/monaco/min/vs/loader.js\"></script>\n");
+print("  <link rel=\"stylesheet\" href=\"" .. serverUrl .. "/monaco/min/vs/editor/editor.main.css\">\n")
+print("  <script src=\"" .. serverUrl .. "/monaco/min/vs/loader.js\"></script>\n")
+print("  <script src=\"" .. serverUrl .. "/files/app.js\"></script>\n")
 %lua%-->
-      <style>
-          body, html {
-              margin: 0;
-              padding: 0;
-              height: 100%;
-              overflow: hidden;
-          }
-          #editorContainer {
-              height: 100%;
-              width: 100%;
-          }
-      </style>
-   </head>
-   <body>
-    <div id="editorContainer"></div>
-    <script>
-        function loadDiff(originalContent, modifiedContent, lang) {
-          // Initialize Monaco Editor
+  <style>
+    body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+    #editorContainer { height: 100%; width: 100%; }
+  </style>
+</head>
+<body>
+  <div id="editorContainer"></div>
+  <script>
 <!--%lua%
-print("          require.config({ paths: { 'vs': '" .. serverUrl .. "/monaco/min/vs' }});\n");
+print("    var monacoPath = '" .. serverUrl .. "/monaco/min/vs';\n")
+print("    var originalUrl = '" .. serverUrl .. "/bin?project=" .. project .. "&path=" .. path .. "&hash=" .. r1 .. "';\n")
+print("    var modifiedUrl = '" .. serverUrl .. "/bin?project=" .. project .. "&path=" .. path .. "&hash=" .. r2 .. "';\n")
 %lua%-->
-          require(['vs/editor/editor.main'], function() {
-              var diffEditor;
-              // Create left and right editor models
-              var originalModel = monaco.editor.createModel(originalContent,lang);
-              var modifiedModel = monaco.editor.createModel(modifiedContent,lang);
 
-              // Create diff editor
-              diffEditor = monaco.editor.createDiffEditor(document.getElementById('editorContainer'), {
-                  language: lang,
-                  theme: 'vs-dark',
-                  readOnly: true
-              });
-              diffEditor.setModel({
-                  original: originalModel,
-                  modified: modifiedModel
-              });
-          });
-        }
-<!--%lua%
-print("        var original = '" .. serverUrl .. "/bin?project=" .. project .. "&path=" .. path .. "&hash=" .. r1 .. "';\n")
-print("        var modified = '" .. serverUrl .. "/bin?project=" .. project .. "&path=" .. path .. "&hash=" .. r2 .. "';\n")
-%lua%-->
-        function fetchModified(content, lang) {
-          fetch(modified)
-            .then(response => response.text())
-            .then(data => loadDiff(content,data,lang))
-            .catch(error => console.error('Error fetching C++ content:', error));
-        }        
-        fetch(original)
-            .then(response => response.text())
-            .then(data => fetchModified(data,'cpp'))
-            .catch(error => console.error('Error fetching C++ content:', error));
-    </script>
-   </body>
+    Promise.all([
+      fetch(originalUrl).then(r => r.text()),
+      fetch(modifiedUrl).then(r => r.text())
+    ]).then(([original, modified]) => {
+      initMonacoDiffEditor(
+        document.getElementById('editorContainer'),
+        original, modified, 'cpp', monacoPath
+      );
+    }).catch(error => console.error('Error loading diff:', error));
+  </script>
+</body>
 </html>
-

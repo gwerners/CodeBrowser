@@ -1,0 +1,513 @@
+/* CodeBrowser - Consolidated Stylesheet
+   Supports light and dark themes via CSS variables.
+   Theme is set by adding class="dark" to <html> element. */
+
+/* === Light theme (default) === */
+:root {
+  --bg: #ffffff;
+  --text: #000;
+  --text-muted: #666;
+  --text-faded: #777;
+  --highlight: #c5d5a9;
+  --alt-row: #e8e8f0;
+  --input-bg: #ffffff;
+  --input-text: #000;
+  --input-border: #bbbbff;
+  --button-bg: #a3b8cb;
+  --button-text: #000;
+  --button-border: #bbbbff;
+  --dir-bg: #c5d5a9;
+  --file-bg-odd: #ffffff;
+  --file-bg-even: #f4f4f4;
+  --header-bg: #c5d5a9;
+  --header-text: #000;
+  --main-row: #ffffff;
+  --border: #ccc;
+  --accent: #ffc726;
+  --link: #2030a2;
+  --link-hover: #202062;
+  --line-num-bg: #dddddd;
+  --line-num-text: #666;
+  --footer-text: #777;
+  --footer-border: #bba;
+  --overlay-bg: #fff3cd;
+  --overlay-text: #000;
+  --overlay-border: #ffc726;
+  --filelist-text: #444;
+  --font-family: "Liberation Sans", sans-serif;
+}
+
+/* === Dark theme === */
+html.dark {
+  --bg: #1e1e2e;
+  --text: #cdd6f4;
+  --text-muted: #a6adc8;
+  --text-faded: #7f849c;
+  --highlight: #313244;
+  --alt-row: #2a2a3c;
+  --input-bg: #313244;
+  --input-text: #cdd6f4;
+  --input-border: #585b70;
+  --button-bg: #45475a;
+  --button-text: #cdd6f4;
+  --button-border: #585b70;
+  --dir-bg: #3b4252;
+  --file-bg-odd: #1e1e2e;
+  --file-bg-even: #262637;
+  --header-bg: #3b4252;
+  --header-text: #cdd6f4;
+  --main-row: #1e1e2e;
+  --border: #45475a;
+  --accent: #f9e2af;
+  --link: #89b4fa;
+  --link-hover: #b4befe;
+  --line-num-bg: #313244;
+  --line-num-text: #a6adc8;
+  --footer-text: #7f849c;
+  --footer-border: #45475a;
+  --overlay-bg: #313244;
+  --overlay-text: #cdd6f4;
+  --overlay-border: #f9e2af;
+  --filelist-text: #a6adc8;
+}
+
+/* === Base === */
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-family);
+  margin: 1ex;
+}
+
+a {
+  text-decoration: none;
+  color: var(--link);
+}
+a:visited, a:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+
+input, button {
+  border: 1px solid var(--button-border);
+  border-radius: 0.75ex;
+  background-color: var(--button-bg);
+  color: var(--button-text);
+}
+
+input.q {
+  width: 100%;
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border: 1px solid var(--input-border);
+}
+
+input.submit {
+  font-weight: bold;
+}
+
+select {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border: 1px solid var(--input-border);
+  border-radius: 0.75ex;
+}
+
+/* === Page layout === */
+#page {
+  padding: 1ex;
+}
+
+#Masthead {
+  font-size: medium;
+  margin-bottom: 1ex;
+}
+
+/* === Search bar === */
+#sbar {
+  border-top: 4px solid var(--accent);
+  margin: 0;
+  padding-top: 1ex;
+  clear: both;
+}
+
+#qtbl, #ptbl {
+  display: inline-block;
+  vertical-align: top;
+}
+
+#qtbl td:first-child {
+  width: 10ex;
+  text-align: right;
+}
+
+#qtbl td:nth-child(2) {
+  width: 45ex;
+}
+
+#ptbl {
+  margin-left: 2em;
+}
+
+#ptbl button {
+  font-size: small;
+  margin-left: 1em;
+}
+
+#ptbl select {
+  width: 100%;
+}
+
+/* === Navigation bar === */
+#bar {
+  border-top: 4px solid var(--accent);
+  margin: 0;
+  padding: 0.5ex 0;
+  clear: both;
+}
+
+#bar ul {
+  display: inline-block;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#bar li {
+  display: inline-block;
+  padding: 0 1ex;
+}
+
+#bar input.q {
+  width: 20ex;
+}
+
+/* === Search results === */
+#results table,
+#results #resultsTable {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+#results .dir {
+  background-color: var(--dir-bg);
+}
+
+#results .dir td {
+  padding-left: 1em;
+}
+
+#results td.f {
+  width: 20ex;
+  padding: 0.5ex;
+  font-weight: bold;
+}
+
+#results .con {
+  font-size: small;
+}
+
+#results .con .l {
+  display: inline-block;
+  width: 6ex;
+  text-align: right;
+  padding-right: 1ex;
+  margin-right: 0.2em;
+  background-color: var(--line-num-bg);
+  color: var(--line-num-text);
+}
+
+.file-row:nth-of-type(odd) {
+  background-color: var(--file-bg-odd);
+}
+
+.file-row:nth-of-type(even) {
+  background-color: var(--file-bg-even);
+}
+
+/* === Revision tables (history, folders) === */
+table#revisions {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: small;
+}
+
+#revisions thead {
+  background-color: var(--header-bg);
+  color: var(--header-text);
+}
+
+#revisions th, #revisions td {
+  padding: 0.5ex 1ex;
+  border: none;
+  vertical-align: top;
+}
+
+#revisions tbody tr:nth-child(odd) {
+  background-color: var(--main-row);
+}
+
+#revisions tbody tr:nth-child(even) {
+  background-color: var(--alt-row);
+}
+
+#revisions td:first-child {
+  font-family: monospace;
+  text-align: left;
+  white-space: nowrap;
+}
+
+#revisions td:nth-child(2), #revisions td:nth-child(3) {
+  text-align: center;
+  white-space: nowrap;
+}
+
+#revisions td:nth-child(4) {
+  padding: 0 1ex;
+}
+
+.rev-message-full {
+  margin: 0;
+  text-align: left;
+}
+
+.compare-cell input {
+  margin: 0 5px;
+}
+
+th, td {
+  padding: 8px;
+  text-align: left;
+}
+
+/* === File list toggle (history-folder) === */
+.toggle-link-global {
+  float: right;
+  font-size: small;
+  cursor: pointer;
+  color: var(--link);
+}
+
+.toggle-link-global:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+
+.filelist-hidden {
+  display: none;
+  font-family: monospace;
+  font-size: 90%;
+  margin-top: 0.5em;
+  padding-left: 2em;
+  color: var(--filelist-text);
+  text-align: left;
+}
+
+/* === Symbol outline panel === */
+#symbolPanel {
+  width: 260px;
+  min-width: 120px;
+  max-width: 800px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: var(--file-bg-even);
+  border-right: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.sym-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  font-weight: bold;
+  background-color: var(--header-bg);
+  color: var(--header-text);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.sym-close {
+  background: none;
+  border: none;
+  font-size: 1.4em;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0 4px;
+  line-height: 1;
+}
+.sym-close:hover { color: red; }
+
+.sym-list {
+  padding: 4px 0;
+}
+
+.sym-group-title {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: var(--text-faded);
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+a.sym-item {
+  display: flex;
+  align-items: baseline;
+  padding: 2px 10px;
+  text-decoration: none;
+  color: var(--text);
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+a.sym-item:hover {
+  background-color: var(--highlight);
+  text-decoration: none;
+  color: var(--text);
+}
+
+.sym-icon {
+  display: inline-block;
+  width: 24px;
+  text-align: center;
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.sym-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sym-sig {
+  color: var(--text-faded);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+}
+
+.sym-line {
+  color: var(--text-faded);
+  font-size: 11px;
+  font-family: monospace;
+  flex-shrink: 0;
+}
+
+.sym-empty {
+  padding: 20px 10px;
+  color: var(--text-faded);
+  text-align: center;
+}
+
+#symbolResizer {
+  width: 6px;
+  cursor: col-resize;
+  background-color: var(--border);
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+#symbolResizer:hover, #symbolResizer.dragging {
+  background-color: var(--accent);
+}
+
+/* === Blame hash links (annotate view) === */
+.blame-hash-link {
+  color: var(--link) !important;
+  cursor: pointer !important;
+  text-decoration: underline;
+}
+.blame-hash-link:hover {
+  color: var(--link-hover) !important;
+}
+
+/* === Editor (Monaco) === */
+.myLineHighlight {
+  background-color: #7e804d;
+  opacity: 0.5;
+}
+
+#editor {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* === Overlay (references popup) === */
+#overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--overlay-bg);
+  color: var(--overlay-text);
+  padding: 20px;
+  border: 2px solid var(--overlay-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  z-index: 20;
+  min-width: 300px;
+  max-width: 80%;
+  max-height: 60vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+#overlay-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#overlay-table td {
+  vertical-align: middle;
+  padding: 0;
+  position: relative;
+}
+
+#overlay-header h2 {
+  margin: 0;
+}
+
+#close-overlay-btn {
+  background: none;
+  border: none;
+  font-size: 1.8em;
+  cursor: pointer;
+  padding: 0 4px;
+  margin: 0;
+  z-index: 21;
+  display: inline-block;
+  color: var(--text-muted);
+  position: relative;
+  line-height: 1;
+}
+
+#close-overlay-btn:hover {
+  color: red;
+}
+
+/* === Footer === */
+#footer {
+  color: var(--footer-text);
+  font-size: small;
+  margin-top: 1ex;
+  border-top: 1px solid var(--footer-border);
+  text-align: center;
+}
+
+#fti {
+  display: inline-block;
+  width: 208px;
+  height: 45px;
+  vertical-align: middle;
+}

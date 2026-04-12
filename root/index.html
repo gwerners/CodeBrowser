@@ -1,15 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<!--%lua% if theme == "dark" then print('<html lang="en" class="dark">') else print('<html lang="en">') end %lua%-->
 <head>
   <meta charset="UTF-8">
   <meta name="robots" content="nofollow">
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <title>CodeBrowser Search</title>
 <!--%lua%
-print("  <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/new_utils.js\"></script>\n")
-print("  <link rel=\"stylesheet\" type=\"text/css\" media=\"all\" title=\"Default\" href=\"" .. serverUrl .. "/files/new_style.css\">\n")
+print("  <script src=\"" .. serverUrl .. "/files/app.js\"></script>\n")
+print("  <link rel=\"stylesheet\" href=\"" .. serverUrl .. "/files/style.css\">\n")
 %lua%-->
-
 </head>
 <body>
   <div id="page">
@@ -17,23 +15,28 @@ print("  <link rel=\"stylesheet\" type=\"text/css\" media=\"all\" title=\"Defaul
       <form id="sbox" action="search">
         <div id="qtbl">
           <table>
-            <tr><td><label for="s1">Full&nbsp;Search:</label></td><td><input class="q" name="q" id="s1" tabindex="1"></td></tr>
-            <tr><td><label for="s2">RegExp(filter):</label></td><td><input class="q" name="r" id="s2" tabindex="2"></td></tr>
+            <tr>
+              <td><label for="s1">Full&nbsp;Search:</label></td>
+              <td><input class="q" name="q" id="s1" tabindex="1"></td>
+            </tr>
+            <tr>
+              <td><label for="s2">RegExp(filter):</label></td>
+              <td><input class="q" name="r" id="s2" tabindex="2"></td>
+            </tr>
           </table>
         </div>
         <div id="ptbl">
-          <select size="4" class="q" id="project" name="project" ondblclick="javascript: goFirstProject();">
+          <select size="4" class="q" id="project" name="project" ondblclick="goFirstProject();">
 <!--%lua%
-for k, v in pairs(projects) do 
-  print("            <option value=\"" .. k .. "\" >" .. k .. "</option>\n")
-end 
+for k, v in pairs(projects) do
+  print("            <option value=\"" .. k .. "\">" .. k .. "</option>\n")
+end
 %lua%-->
           </select>
         </div>
         <p>
           <input class="submit" type="submit" value="Search" tabindex="9">
           <input class="submit" type="button" value="Clear" onclick="clearForm()" tabindex="10">
-          <!--button type="button" onclick="openHelp()" tabindex="11">Help</button-->
         </p>
       </form>
     </div>
@@ -47,4 +50,3 @@ print("      <p>Indexes created " .. indexCreationTime .. "</p>\n")
   </div>
 </body>
 </html>
-

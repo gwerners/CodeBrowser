@@ -1,89 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<!--%lua% if theme == "dark" then print('<html lang="en" class="dark">') else print('<html lang="en">') end %lua%-->
 <head>
   <meta charset="UTF-8">
   <title>CodeBrowser Folder Revision History</title>
 <!--%lua%
-print("  <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/new_utils.js\"></script>\n")
-print("  <link rel=\"stylesheet\" type=\"text/css\" media=\"all\" title=\"Default\" href=\"" .. serverUrl .. "/files/new_style.css\">\n")
+print("  <script src=\"" .. serverUrl .. "/files/app.js\"></script>\n")
+print("  <link rel=\"stylesheet\" href=\"" .. serverUrl .. "/files/style.css\">\n")
 %lua%-->
 </head>
-<style>
-.toggle-link-global {
-  float: right;
-  font-size: small;
-  cursor: pointer;
-  color: #2030a2;
-}
-.toggle-link-global:hover {
-  color: #202062;
-  text-decoration: underline;
-}
-
-.filelist-hidden {
-  display: none;
-  font-family: monospace;
-  font-size: 90%;
-  margin-top: 0.5em;
-  padding-left: 2em;
-  color: #444;
-  text-align: left;
-}
-
-table#revisions {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: small;
-}
-
-#revisions thead {
-  background-color: var(--header-bg);
-  color: black;
-}
-
-#revisions th, #revisions td {
-  padding: 0.5ex 1ex;
-  border: none;
-  vertical-align: top;
-}
-
-#revisions tbody tr:nth-child(odd) {
-  background-color: var(--main-row);
-}
-
-#revisions tbody tr:nth-child(even) {
-  background-color: var(--alt-row);
-}
-
-#revisions td:first-child {
-  font-family: monospace;
-  text-align: center;
-  white-space: nowrap;
-}
-
-#revisions td:nth-child(2), #revisions td:nth-child(3) {
-  text-align: center;
-  white-space: nowrap;
-}
-
-#revisions td:nth-child(4) {
-  padding: 0 1ex;
-}
-
-.rev-message-full {
-  margin: 0;
-  text-align: left;
-}
-
-.compare-cell input { margin: 0 5px; }
-
-th, td {
- 
-  padding: 8px;
-  text-align: center;
-}
-</style>
-
 <body>
   <div id="page">
     <div id="whole_header">
@@ -91,7 +15,7 @@ th, td {
 <!--%lua%
 print("        History of <a href=\"" .. serverUrl .. "/folders?project=" .. project .. "&path=" .. path .. "\">" .. project .. "/" .. path .. "</a>\n")
 %lua%-->
-      (Results <b id="revCount">0</b>)
+        (Results <b id="revCount">0</b>)
       </div>
       <form action="#">
         <div id="bar">
@@ -105,94 +29,73 @@ print("            <li><a href=\"" .. serverUrl .. "\">Home</a></li>\n")
     </div>
 
     <div id="content">
-      <form action="#">
-        <table class="src" id="revisions">
-          <thead>
-            <tr>
-              <th>Revision</th>
-              <th>Date</th>
-              <th>Author</th>
-              <th>Comments  <div class="toggle-link-global" onclick="toggleAllFileLists(this)">(Show modified files >>>)</div></th>
-            </tr>
-          </thead>
-          <tbody id="rev-body">
-            <!-- Populated dynamically -->
-          </tbody>
-        </table>
-      </form>
+      <table class="src" id="revisions">
+        <thead>
+          <tr>
+            <th>Revision</th>
+            <th>Date</th>
+            <th>Author</th>
+            <th>Comments <div class="toggle-link-global" onclick="toggleAllFileLists(this)">(Show modified files >>>)</div></th>
+          </tr>
+        </thead>
+        <tbody id="rev-body"></tbody>
+      </table>
     </div>
 
     <div id="footer">
 <!--%lua%
-print("        <p><a href=\"" .. githubUrl .. "\" title=\"Served by " .. serverName .. "\"><span id=\"fti\"></span></a></p>\n")
-print("        <p>Indexes created " .. indexCreationTime .. "</p>\n")
+print("      <p><a href=\"" .. githubUrl .. "\" title=\"Served by " .. serverName .. "\"><span id=\"fti\"></span></a></p>\n")
+print("      <p>Indexes created " .. indexCreationTime .. "</p>\n")
 %lua%-->
     </div>
   </div>
 
 <script>
-
-    const revisions = [
+  const revisions = [
 <!--%lua%
 if commits then
   local comma = ""
   for i = 1, #commits do
-    local commit = commits[i]
+    local c = commits[i]
     print(comma .. "{\n")
-    print("      rev: \"" .. commit.hash .. "\",\n")
-    print("      date: \"" .. commit.date .. "\",\n")
-    print("      author: \"" .. commit.author .. "\",\n")
-    print("      comment: \"" .. commit.message .. "\",\n")
-    print("      files: [\n")
-    local fileComma = ""
-    for j = 1, #commit.files do
-      print("          " .. fileComma .. "{url:\"" .. serverUrl .. "/files?project=" .. project .. "&path=" ..  commit.files[j] .. "&hash=" .. commit.hash .. "\",path:\"" .. commit.files[j] .. "\"}\n")
-      fileComma = ","
+    print("  rev: \"" .. c.hash .. "\",\n")
+    print("  date: \"" .. c.date .. "\",\n")
+    print("  author: \"" .. c.author .. "\",\n")
+    print("  comment: \"" .. c.message .. "\",\n")
+    print("  files: [\n")
+    local fc = ""
+    for j = 1, #c.files do
+      print("    " .. fc .. "{ url: \"" .. serverUrl .. "/files?project=" .. project .. "&path=" .. c.files[j] .. "&hash=" .. c.hash .. "\", path: \"" .. c.files[j] .. "\" }\n")
+      fc = ","
     end
-    print("        ],\n")
-    print("      url: \"" .. serverUrl .. "/files?project=" .. project .. "&path=" .. path .. "&hash=" .. commit.hash .. "\"\n")
+    print("  ]\n")
     print("}\n")
     comma = ","
   end
 end
 %lua%-->
-    ];
-    const tbody = document.getElementById("revTable");
-    const revCount = document.getElementById("revCount");
-    revCount.textContent = `${revisions.length}`;
+  ];
 
-    function createRevisionRow(rev) {
+  document.getElementById("revCount").textContent = revisions.length;
+
+  window.onload = () => {
+    const tbody = document.getElementById("rev-body");
+    revisions.forEach(rev => {
       const row = document.createElement("tr");
       row.innerHTML = `
-         <td>${rev.rev}</td>
-         <td>${rev.date}</td>
-         <td>${rev.author}</td>
-         <td>
-            <p class="rev-message-full">${rev.comment}</p>
-            <div class="filelist-hidden" style="display: none;">
+        <td>${rev.rev}</td>
+        <td>${rev.date}</td>
+        <td>${rev.author}</td>
+        <td>
+          <p class="rev-message-full">${rev.comment}</p>
+          <div class="filelist-hidden" style="display: none;">
             ${rev.files.map(f => `<a href="${f.url}">${f.path}</a><br>`).join("")}
-            </div>
-         </td>
+          </div>
+        </td>
       `;
-      return row;
-      }
-
-
-    function toggleAllFileLists(link) {
-      const hiddenLists = document.querySelectorAll(".filelist-hidden");
-      const showing = [...hiddenLists].some(div => div.style.display === "block");
-      hiddenLists.forEach(div => {
-        div.style.display = showing ? "none" : "block";
-      });
-      link.textContent = showing ? "(Show modified files >>>)" : "(<<< Hide modified files)";
-    }
-
-    window.onload = () => {
-      const tbody = document.getElementById("rev-body");
-      revisions.forEach(rev => tbody.appendChild(createRevisionRow(rev)));
-    };
+      tbody.appendChild(row);
+    });
+  };
 </script>
-
 </body>
 </html>
-

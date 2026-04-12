@@ -12,12 +12,13 @@ struct Commit {
 
 class Git {
  public:
-  Git(const std::string& cmd);
-  std::string blame(const std::string& path, const std::string& hash);
-  std::string log(const std::string path);
+  Git(const std::string& gitCmd);
+  std::string blame(const std::string& path, const std::string& hash = "");
+  std::string log(const std::string& path);
   std::string show(const std::string& path, const std::string& hash);
-  std::vector<Commit> commits(const std::string path);
+  std::vector<Commit> commits(const std::string& path);
 
  private:
   std::string _git;
+  std::string _gitRoot;
 };

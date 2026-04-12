@@ -1,109 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<!--%lua% if theme == "dark" then print('<html lang="en" class="dark">') else print('<html lang="en">') end %lua%-->
 <head>
   <meta charset="UTF-8">
   <title>CodeBrowser Folder View</title>
 <!--%lua%
-print("  <script type=\"text/javascript\" src=\"" .. serverUrl .. "/files/new_utils.js\"></script>\n")
-print("  <link rel=\"stylesheet\" type=\"text/css\" media=\"all\" title=\"Default\" href=\"" .. serverUrl .. "/files/new_style.css\">\n")
+print("  <script src=\"" .. serverUrl .. "/files/app.js\"></script>\n")
+print("  <link rel=\"stylesheet\" href=\"" .. serverUrl .. "/files/style.css\">\n")
 %lua%-->
 </head>
-<style>
-.toggle-link-global {
-  float: right;
-  font-size: small;
-  cursor: pointer;
-  color: #2030a2;
-}
-.toggle-link-global:hover {
-  color: #202062;
-  text-decoration: underline;
-}
-
-.filelist-hidden {
-  display: none;
-  font-family: monospace;
-  font-size: 90%;
-  margin-top: 0.5em;
-  padding-left: 2em;
-  color: #444;
-}
-
-table#revisions {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: small;
-}
-
-#revisions thead {
-  background-color: var(--header-bg);
-  color: black;
-}
-
-#revisions th, #revisions td {
-  padding: 0.5ex 1ex;
-  border: none;
-  vertical-align: top;
-}
-
-#revisions tbody tr:nth-child(odd) {
-  background-color: var(--main-row);
-}
-
-#revisions tbody tr:nth-child(even) {
-  background-color: var(--alt-row);
-}
-
-#revisions td:first-child {
-  font-family: monospace;
-  text-align: left;
-  white-space: nowrap;
-}
-
-#revisions td:nth-child(2), #revisions td:nth-child(3) {
-  text-align: center;
-  white-space: nowrap;
-}
-
-#revisions td:nth-child(4) {
-  padding: 0 1ex;
-}
-
-.rev-message-full {
-  margin: 0;
-  text-align: center;
-}
-
-.compare-cell input { margin: 0 5px; }
-
-th, td {
- 
-  padding: 8px;
-  text-align: center;
-}
-</style>
 <body>
   <div id="page">
     <div id="whole_header">
       <div id="Masthead">
 <!--%lua%
-
-local str_upper_path = ""
-
-str_upper_path= "&path=" .. upperPath
-
-print("<!-- " .. upperPath .. " -->")
-print("<!-- " .. path .. " -->")
-print("        History of <a href=\"" .. serverUrl .. "/folders?project=" .. project .. str_upper_path .. "\">" .. project .. "/" .. path .. "</a>\n")
-%lua%--> 
-      (Results <b id="revCount">0</b>)
+local str_upper_path = "&path=" .. upperPath
+print("        Contents of <a href=\"" .. serverUrl .. "/folders?project=" .. project .. str_upper_path .. "\">" .. project .. "/" .. path .. "</a>\n")
+%lua%-->
+        (Results <b id="revCount">0</b>)
       </div>
       <form action="#">
         <div id="bar">
           <ul>
 <!--%lua%
 print("            <li><a href=\"" .. serverUrl .. "\">Home</a></li>\n")
-print("            <li><a href=\"" .. serverUrl .. "/history?project=" .. project .. "&path=" .. path .. "\">History</a></li>\n") 
+print("            <li><a href=\"" .. serverUrl .. "/history?project=" .. project .. "&path=" .. path .. "\">History</a></li>\n")
 %lua%-->
           </ul>
         </div>
@@ -111,82 +31,61 @@ print("            <li><a href=\"" .. serverUrl .. "/history?project=" .. projec
     </div>
 
     <div id="content">
-      <form action="#">
-        <table class="src" id="revisions">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Date</th>
-              <th>Size</th>
-              <th>Type</th>
-            </tr>
-          </thead>
-          <tbody id="rev-body">
-            <!-- Populated dynamically -->
-          </tbody>
-        </table>
-      </form>
+      <table class="src" id="revisions">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Size</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody id="rev-body"></tbody>
+      </table>
     </div>
 
     <div id="footer">
 <!--%lua%
-print("        <p><a href=\"" .. githubUrl .. "\" title=\"Served by " .. serverName .. "\"><span id=\"fti\"></span></a></p>\n")
-print("        <p>Indexes created " .. indexCreationTime .. "</p>\n")
+print("      <p><a href=\"" .. githubUrl .. "\" title=\"Served by " .. serverName .. "\"><span id=\"fti\"></span></a></p>\n")
+print("      <p>Indexes created " .. indexCreationTime .. "</p>\n")
 %lua%-->
     </div>
   </div>
 
 <script>
-
-    const revisions = [
+  const revisions = [
 <!--%lua%
 local files_info = get_file_info()
 local comma = ""
-local type = ""
-local url = ""
 for _, file_info in ipairs(files_info) do
-  if file_info.isDir == true then
-    type="Directory"
-  else
-    type="File"
-  end
-  if  file_info.path == nil or file_info.path == '' then
-    url = serverUrl .. "/" .. file_info.type .. "?project=" .. project .. "&path=" .. file_info.name  
+  local type = file_info.isDir and "Directory" or "File"
+  local url
+  if file_info.path == nil or file_info.path == '' then
+    url = serverUrl .. "/" .. file_info.type .. "?project=" .. project .. "&path=" .. file_info.name
   else
     url = serverUrl .. "/" .. file_info.type .. "?project=" .. project .. "&path=" .. file_info.path .. "/" .. file_info.name
   end
-  print("      " .. comma .. "{\n")
-  print("        name: \"" .. file_info.name .. "\",\n")
-  print("        date: \"" .. file_info.access_date .. "\",\n")
-  print("        size: \"" .. file_info.size .. "\",\n")
-  print("        type: \"" .. type .. "\",\n")
-  print("        url: \"" .. url .. "\"\n")
-  print("      }\n")
-  comma=","
+  print("    " .. comma .. "{ name: \"" .. file_info.name .. "\", date: \"" .. file_info.access_date .. "\", size: \"" .. file_info.size .. "\", type: \"" .. type .. "\", url: \"" .. url .. "\" }\n")
+  comma = ","
 end
-%lua%--> 
-    ];
+%lua%-->
+  ];
 
-    const tbody = document.getElementById("revTable");
-    const revCount = document.getElementById("revCount");
-    revCount.textContent = `${revisions.length}`;
-    function createRevisionRow(rev) {
+  document.getElementById("revCount").textContent = revisions.length;
+
+  window.onload = () => {
+    const tbody = document.getElementById("rev-body");
+    revisions.forEach(rev => {
       const row = document.createElement("tr");
       row.innerHTML = `
-         <td><a href="${rev.url}" >${rev.name}</a></td>
-         <td>${rev.date}</td>
-         <td>${rev.size}</td>
-         <td>${rev.type}</td>
+        <td><a href="${rev.url}">${rev.name}</a></td>
+        <td>${rev.date}</td>
+        <td>${rev.size}</td>
+        <td>${rev.type}</td>
       `;
-      return row;
-      }
-
-    window.onload = () => {
-      const tbody = document.getElementById("rev-body");
-      revisions.forEach(rev => tbody.appendChild(createRevisionRow(rev)));
-    };
+      tbody.appendChild(row);
+    });
+  };
 </script>
-
 </body>
 </html>
-

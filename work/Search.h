@@ -2,20 +2,17 @@
 #include <string>
 #include <vector>
 
-class SearchLine {
- public:
+struct SearchLine {
   std::string line;
   std::string excerpt;
 };
 
-class SearchFile {
- public:
+struct SearchFile {
   std::string name;
   std::vector<SearchLine> lines;
 };
 
-class SearchInfo {
- public:
+struct SearchInfo {
   std::string path;
   std::vector<SearchFile> files;
 };

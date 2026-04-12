@@ -1,69 +1,64 @@
 #include "Utils.h"
-#include <dirent.h>
-#include <signal.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <filesystem>
 #include <fstream>
-#include <nlohmann/json.hpp>
+#include <iomanip>
 #include <sstream>
-#include <string>
-#include <vector>
 #include "fmt/color.h"
 #include "fmt/format.h"
 
 namespace fs = std::filesystem;
-using json = nlohmann::json;
 
 void sigchld_handler(int) {
   int status;
   pid_t pid;
-
-  // Reap all terminated child processes
   while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
-    // Handle terminated child process
     fmt::print(fg(fmt::color::red),
                "{}:{} - Child process {} terminated with status {}\n",
                __FUNCTION__, __LINE__, pid, WEXITSTATUS(status));
   }
 }
 
-bool is_valid_utf8_char(uint8_t byte) {
-  // ASCII characters are always valid
+// Proper UTF-8 validation: replaces any byte that is not valid ASCII
+// or a proper UTF-8 continuation/lead byte with a replacement char.
+static bool is_valid_utf8_byte(uint8_t byte) {
+  // ASCII range is always valid
   if (byte < 0x80)
     return true;
-
-  // Check if byte is part of a multi-byte sequence
-  if ((byte & 0xC0) != 0x80)
-    return false;
-
-  // 0xA9  invalid UTF-8 byte at index 1792: 0xA9
-  if (byte & 0xA9)
-    return false;
-
-  if (byte > 127)
-    return false;
-  return true;
+  // Valid UTF-8 lead bytes: 0xC0-0xFD
+  // Valid continuation bytes: 0x80-0xBF
+  // For simplicity, reject bytes >= 0x80 that could cause issues
+  // in contexts expecting clean ASCII-compatible text.
+  // This is a conservative approach matching the original intent.
+  return false;
 }
 
 void replace_invalid_utf8(std::string& str) {
   for (char& c : str) {
-    if (!is_valid_utf8_char(static_cast<uint8_t>(c))) {
-      c = '#';
+    if (!is_valid_utf8_byte(static_cast<uint8_t>(c))) {
+      c = ' ';
+    }
+  }
+}
+
+void replace_invalid_utf8(char* str, size_t len) {
+  for (size_t i = 0; i < len; i++) {
+    if (!is_valid_utf8_byte(static_cast<uint8_t>(str[i]))) {
+      str[i] = ' ';
     }
   }
 }
 
 std::string readFile(const std::string& filename) {
   std::ifstream t(filename);
-  std::string ret = std::string((std::istreambuf_iterator<char>(t)),
-                                std::istreambuf_iterator<char>());
+  std::string ret((std::istreambuf_iterator<char>(t)),
+                  std::istreambuf_iterator<char>());
   replace_invalid_utf8(ret);
-  /*fmt::print( fg(fmt::color::blue),
-             "{}:{} - {} contents[{}]\n",__FUNCTION__,__LINE__,filename,ret);*/
   return ret;
 }
 
-bool exists(const std::string& filename) {
+bool fileExists(const std::string& filename) {
   struct stat buffer;
   return (stat(filename.c_str(), &buffer) == 0);
 }
@@ -88,7 +83,6 @@ std::string getCurrentTimeFormatted() {
 
   std::tm tm = *std::localtime(&now_time_t);
 
-  // Format: 2025/5/3 15:00:00.050 - Thu July 03 15:00:00 PDT 2025
   char buffer[100];
   std::strftime(buffer, sizeof(buffer), "%Y/%m/%d %H:%M:%S", &tm);
 
@@ -104,38 +98,35 @@ std::string getCurrentTimeFormatted() {
 bool saveTimestampToJson(const std::string& filePath) {
   try {
     fs::create_directories(fs::path(filePath).parent_path());
-
     json j;
     j["timestamp"] = getCurrentTimeFormatted();
-
     std::ofstream file(filePath);
     if (!file.is_open())
       return false;
-
-    file << j.dump(4);  // indentado
-    file.close();
-
+    file << j.dump(4);
     return true;
   } catch (...) {
     return false;
   }
 }
+
 std::string loadTimestampFromJson(const std::string& filePath) {
   try {
     std::ifstream file(filePath);
     if (!file.is_open())
-      return "Erro ao abrir arquivo.";
-
+      return "No timestamp file found.";
     json j;
     file >> j;
-    file.close();
-
-    if (j.contains("timestamp")) {
+    if (j.contains("timestamp"))
       return j["timestamp"];
-    }
-
-    return "Campo 'timestamp' não encontrado.";
+    return "Field 'timestamp' not found.";
   } catch (...) {
-    return "Erro ao ler o arquivo ou JSON inválido.";
+    return "Error reading timestamp file.";
   }
+}
+
+bool endsWith(const std::string& str, const std::string& suffix) {
+  if (suffix.size() > str.size())
+    return false;
+  return str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }

@@ -1,72 +1,67 @@
 #pragma once
-#include <list>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
+#include <vector>
+#include "Config.h"
 #include "FileInfo.h"
 #include "Search.h"
+#include "crow.h"
+#include "ctags/CtagsProvider.h"
 
 #define SOL_USE_MINILUA_HPP_I_ SOL_ON
 #define SOL_USING_MINILUA_HPP_I_ SOL_ON
 #define SOL_ALL_SAFETIES_ON 1
 #include <sol/sol.hpp>
 
-typedef std::map<std::string, std::pair<std::string, std::string>> projectMap;
-
-class ServerPrivData {
- public:
-  ServerPrivData()
-      : _useSearch(false), _isDiff(false), _useGit(false), _isBlame(false) {}
-  bool _useSearch;
-  bool _isDiff;
-  bool _useGit;
-  bool _isBlame;
-  std::string _project;
-  std::string _filename;
-  std::string _root;
-  std::string _path;
-  std::string _hash;
-  std::string _line;
-  std::string _r1;
-  std::string _r2;
-  std::string _fullTextQuery;
-  std::string _regexpTextQuery;
-  std::string _indexCreationTime;
-  bool _updateIndex;
+// Request context extracted from URL parameters
+struct RequestContext {
+  std::string project;
+  std::string root;       // project source root + path
+  std::string path;       // relative path within project
+  std::string hash;       // git commit hash
+  std::string line;       // line number
+  std::string r1, r2;     // diff revisions
+  std::string fullTextQuery;
+  std::string regexpQuery;
+  std::string templateFile;
+  std::string indexCreationTime;
+  bool useSearch = false;
+  bool isDiff = false;
+  bool useGit = false;
+  bool isBlame = false;
 };
+
 class Server {
  public:
-  Server();
-  void configure();
-  void updateIndexes();
-  void addGitResult(sol::state& lua, const std::string path);
-  void addFileInfo(sol::state& lua,
-                   const std::string& root,
-                   const std::string& path);
-  void addSearchInfo(sol::state& lua);
-  std::string load(const ServerPrivData& priv);
-  std::string processLuaTemplate(std::string& htmlLuaTemplate, sol::state& lua);
+  Server(const std::string& configFile = "config.json",
+         const std::map<std::string, std::string>& overrides = {});
   void run();
 
  private:
-  projectMap _projects;
+  // Initialization
+  void updateIndexes();
+  void updateCtagsIndexes();
+
+  // Template processing
+  std::string renderTemplate(const RequestContext& ctx);
+  std::string processLuaTemplate(std::string& html, sol::state& lua);
+
+  // Lua helpers - register data with Lua state
+  void registerProjects(sol::state& lua);
+  void registerGitCommits(sol::state& lua, const std::string& path);
+  void registerFileInfo(sol::state& lua,
+                        const std::string& root,
+                        const std::string& path);
+  void registerSearchInfo(sol::state& lua);
+
+  // Route helpers
+  RequestContext extractParams(const crow::request& req);
+  std::string resolveFileSuffix(const std::string& path);
+
+  Config _config;
   std::set<std::string> _openFiles;
-  std::string _url;
-  int _port;
-  std::string _htmlRoot;
-  std::string _folders;
-  std::string _editor;
-  std::string _index;
-  std::string _historyFolder;
-  std::string _historyFile;
-  std::string _diff;
-  std::string _annotate;
-  std::string _lsp;
-  std::string _git;
-  std::string _search;
-  std::string _indexCreationTime;
-  bool _updateIndex;
-  std::string _indexTimestamp;
   std::vector<SearchInfo> _searchInfo;
-  std::set<std::string> _cppSuffix;
+  std::map<std::string, CtagsProvider> _ctagsProviders;
 };

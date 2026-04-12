@@ -1,0 +1,15 @@
+{
+    "symbol-provider": "clangd",
+    "projects": [
+        {
+            "name": "CodeBrowser_old",
+            "source": "/home/gwerners/projects_claude/CodeBrowser_old",
+            "index": "index/CodeBrowser_old-index"
+        },
+        {
+            "name": "lucy-clownfish",
+            "source": "/home/gwerners/projects_claude/CodeBrowser_old/lucy-clownfish/compiler",
+            "index": "index/lucy-clownfish-index"
+        }
+    ]
+}

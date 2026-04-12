@@ -1,22 +1,9 @@
 #pragma once
-#ifdef USING_QT
-#include <QObject>
-#endif
+#include <map>
+#include <string>
 
-#ifdef USING_QT
-class Task : public QObject {
-  Q_OBJECT
- public:
-  Task(QObject* parent = 0);
- public slots:
-  int run();
- signals:
-  void finished();
-};
-#else
 class Task {
  public:
-  Task();
-  int run();
+  int run(const std::string& configFile = "config.json",
+          const std::map<std::string, std::string>& overrides = {});
 };
-#endif

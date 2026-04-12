@@ -1,128 +1,151 @@
 #include "Git.h"
 #include "PipeCommand.h"
+#include "Utils.h"
 #include "fmt/color.h"
 #include "fmt/format.h"
 #include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
 
-// Function to parse a line based on a delimiter
-std::vector<std::string> splitLine(const std::string& line, char delimiter) {
-  std::vector<std::string> result;
-  std::stringstream ss(line);
-  std::string item;
-  while (std::getline(ss, item, delimiter)) {
-    item.erase(remove(item.begin(), item.end(), '"'), item.end());
-    result.push_back(item);
-  }
-  return result;
-}
-
-// Function to parse the input and construct the JSON object
-static json parseInput(const std::string& input) {
+static json parseGitLog(const std::string& input) {
   json jsonArray = json::array();
-  std::istringstream inputStream(input);
-  std::string line;
-  if (input.empty()) {
-    fmt::print(fg(fmt::color::blue), "empty input in parseInput\n");
+  if (input.empty())
     return jsonArray;
-  }
-  while (std::getline(inputStream, line)) {
-    // Skip empty lines
+
+  std::istringstream stream(input);
+  std::string line;
+
+  while (std::getline(stream, line)) {
     if (line.empty())
       continue;
 
-    std::vector<std::string> parsedData = splitLine(line, '|');
-
-    // Skip invalid lines
-    if (parsedData.size() != 4)
+    auto parts = split(line, '|');
+    if (parts.size() != 4)
       continue;
 
-    json jsonObject;
-    jsonObject["hash"] = parsedData[0];
-    jsonObject["date"] = parsedData[1];
-    jsonObject["author"] = parsedData[2];
-    jsonObject["message"] = parsedData[3];
-
-    // Collect all related files
-    std::vector<std::string> relatedFiles;
-    while (std::getline(inputStream, line) && !line.empty()) {
-      relatedFiles.push_back(line);
+    // Remove quotes from git pretty format
+    for (auto& p : parts) {
+      p.erase(std::remove(p.begin(), p.end(), '"'), p.end());
     }
 
-    jsonObject["files"] = relatedFiles;
-    jsonArray.push_back(jsonObject);
-  }
+    json entry;
+    entry["hash"] = parts[0];
+    entry["date"] = parts[1];
+    entry["author"] = parts[2];
+    entry["message"] = parts[3];
 
+    std::vector<std::string> files;
+    while (std::getline(stream, line) && !line.empty()) {
+      files.push_back(line);
+    }
+    entry["files"] = files;
+    jsonArray.push_back(entry);
+  }
   return jsonArray;
 }
 
-Git::Git(const std::string& cmd) : _git(cmd) {}
-
-std::string Git::blame(const std::string& path, const std::string& hash) {
-  if (hash.empty()) {
-    return PipeCommand::cmd(_git, "blame", "--", path.c_str());
-  }
-  return PipeCommand::cmd(_git, "blame", hash.c_str(), "--", path.c_str());
+// Find git repo root from current directory
+static std::string findGitRoot() {
+  std::string root = PipeCommand::cmd("git", "rev-parse", "--show-toplevel");
+  while (!root.empty() && (root.back() == '\n' || root.back() == '\r'))
+    root.pop_back();
+  return root;
 }
 
-std::string Git::log(const std::string path) {
-  // clang-format off
-    /*
-    1 file
-    git log --pretty=format:"%h|%ad|%an|%s" --date=short -- CollisionModel.h
-    736ec20|2011-12-16|dhewg|Untangle the epic precompiled.h mess
-    79ad905|2011-12-06|dhewg|Fix all whitespace errors
-    ff493f6|2011-12-06|dhewg|Fix quoting in GPL headers
-    fb1609f|2011-11-22|Timothee 'TTimo' Besset|hello world
+// Convert path (relative to cwd) to path relative to git root
+static std::string toGitPath(const std::string& path,
+                             const std::string& gitRoot) {
+  if (gitRoot.empty())
+    return path;
 
-    directory
-    git log --pretty=format:"%h|%ad|%an|%s" --date=short --name-only -- $(pwd)
-    dbe4174|2023-01-05|Daniel Gibson|Fix/work around other misc. compiler warnings
-    neo/cm/CollisionModel_load.cpp
-    */
-  // clang-format on
-  return PipeCommand::cmd(_git, "log", "--pretty=format:\"%h|%ad|%an|%s\"",
-                          "--date=short", "--name-only", "--", path.c_str());
+  char cwd[4096];
+  if (!getcwd(cwd, sizeof(cwd)))
+    return path;
+
+  std::string absPath = std::string(cwd) + "/" + path;
+  if (absPath.find(gitRoot) == 0) {
+    std::string rel = absPath.substr(gitRoot.size());
+    if (!rel.empty() && rel[0] == '/')
+      rel = rel.substr(1);
+    return rel;
+  }
+  return path;
+}
+
+// Convert path (relative to git root) to path relative to cwd
+static std::string fromGitPath(const std::string& gitPath,
+                               const std::string& gitRoot) {
+  if (gitRoot.empty())
+    return gitPath;
+
+  char cwd[4096];
+  if (!getcwd(cwd, sizeof(cwd)))
+    return gitPath;
+
+  // cwd prefix relative to gitRoot (e.g. "compiler/")
+  std::string cwdStr(cwd);
+  if (cwdStr.find(gitRoot) == 0) {
+    std::string prefix = cwdStr.substr(gitRoot.size());
+    if (!prefix.empty() && prefix[0] == '/')
+      prefix = prefix.substr(1);
+    if (!prefix.empty() && prefix.back() != '/')
+      prefix += '/';
+
+    // Strip prefix from gitPath if it matches
+    if (!prefix.empty() && gitPath.find(prefix) == 0)
+      return gitPath.substr(prefix.size());
+  }
+  return gitPath;
+}
+
+Git::Git(const std::string& gitCmd) : _git(gitCmd) {
+  _gitRoot = findGitRoot();
+}
+
+std::string Git::blame(const std::string& path, const std::string& hash) {
+  std::string gp = toGitPath(path, _gitRoot);
+  if (hash.empty())
+    return PipeCommand::cmd(_git, "-C", _gitRoot.c_str(),
+                            "blame", "--", gp.c_str());
+  return PipeCommand::cmd(_git, "-C", _gitRoot.c_str(),
+                          "blame", hash.c_str(), "--", gp.c_str());
+}
+
+std::string Git::log(const std::string& path) {
+  std::string gp = toGitPath(path, _gitRoot);
+  return PipeCommand::cmd(_git, "-C", _gitRoot.c_str(),
+                          "log", "--pretty=format:\"%h|%ad|%an|%s\"",
+                          "--date=short", "--name-only", "--", gp.c_str());
 }
 
 std::string Git::show(const std::string& path, const std::string& hash) {
-  // git blame {commit_id} -- {path/to/file} --date=format:'%Y-%m-%d %H:%M:%S'
-  std::string cmd = fmt::format("{}:{}", hash.c_str(), path.c_str());
-  return PipeCommand::cmd(_git, "show", cmd.c_str());
+  std::string gp = toGitPath(path, _gitRoot);
+  std::string ref = fmt::format("{}:{}", hash, gp);
+  return PipeCommand::cmd(_git, "-C", _gitRoot.c_str(),
+                          "show", ref.c_str());
 }
 
-std::vector<Commit> Git::commits(const std::string path) {
-  std::vector<Commit> commits;
-  std::string gitOutput = log(path);
-  if (!gitOutput.empty()) {
-    json gitJson = parseInput(gitOutput);
-    fmt::print(fmt::emphasis::bold | fg(fmt::color::blue), "git json [{}]\n",
-               gitJson.dump(4));
-    if (!gitJson.empty()) {
-      for (size_t index = 0; index < gitJson.size(); ++index) {
-        json entry = gitJson.at(index);
-        Commit commit;
-        if (entry.contains("hash")) {
-          commit.hash = entry["hash"];
-        }
-        if (entry.contains("date")) {
-          commit.date = entry["date"];
-        }
-        if (entry.contains("author")) {
-          commit.author = entry["author"];
-        }
-        if (entry.contains("message")) {
-          commit.message = entry["message"];
-        }
-        if (entry.contains("files")) {
-          commit.files = entry["files"];
-        }
-        commits.push_back(commit);
-      }
-    }
-  } else {
-    fmt::print(fmt::emphasis::bold | fg(fmt::color::red), "empty git!!!\n");
+std::vector<Commit> Git::commits(const std::string& path) {
+  std::vector<Commit> result;
+  std::string output = log(path);
+  if (output.empty()) {
+    fmt::print(fg(fmt::color::red), "Empty git log for {}\n", path);
+    return result;
   }
-  return commits;
+
+  json entries = parseGitLog(output);
+  for (auto& entry : entries) {
+    Commit c;
+    c.hash = entry.value("hash", "");
+    c.date = entry.value("date", "");
+    c.author = entry.value("author", "");
+    c.message = entry.value("message", "");
+    if (entry.contains("files")) {
+      auto rawFiles = entry["files"].get<std::vector<std::string>>();
+      for (auto& f : rawFiles)
+        c.files.push_back(fromGitPath(f, _gitRoot));
+    }
+    result.push_back(std::move(c));
+  }
+  return result;
 }
