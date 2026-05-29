@@ -157,7 +157,13 @@ json CxxIndexProvider::symbolAt(const std::string& file, int line, int col) cons
   std::string output  = PipeCommand::cmd(
       _cxxidxBin, "at", _indexPath.c_str(), file.c_str(),
       lineStr.c_str(), colStr.c_str());
-  return parseSymbolAt(output);
+  auto result = parseSymbolAt(output);
+  // Attach raw cxxidx output for debug when no symbol found
+  if (result.empty()) {
+    result["_atOutput"] = output.empty() ? "(empty — cxxidx binary not found or index not loaded)" : output;
+    result["_query"]    = file + ":" + lineStr + ":" + colStr;
+  }
+  return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -222,30 +228,41 @@ json CxxIndexProvider::calleesByName(const std::string& symbol) const {
   return parseCallGraph(run("callees", symbol), symbol, "symbol", false);
 }
 
-static json emptyGraph() {
+static json emptyGraph(const json& debugSym = {}) {
   json g;
   g["center"] = nullptr;
   g["nodes"]  = json::array();
   g["edges"]  = json::array();
+  // Propagate debug fields from symbolAt if available
+  if (!debugSym.empty()) {
+    if (debugSym.contains("_atOutput")) g["_debug_atOutput"] = debugSym["_atOutput"];
+    if (debugSym.contains("_query"))    g["_debug_query"]    = debugSym["_query"];
+  }
   return g;
+}
+
+static json withGraphDebug(json graph, const std::string& rawOutput) {
+  if (!rawOutput.empty())
+    graph["_debug_graphOutput"] = rawOutput;
+  return graph;
 }
 
 json CxxIndexProvider::callers(const std::string& file, int line, int col) const {
   auto sym = symbolAt(file, line, col);
-  if (sym.empty()) return emptyGraph();
+  if (sym.value("name", "").empty()) return emptyGraph(sym);
   std::string name = sym.value("name", "");
   std::string kind = sym.value("kind", "symbol");
-  if (name.empty()) return emptyGraph();
-  return parseCallGraph(run("callers", name), name, kind, true);
+  std::string raw  = run("callers", name);
+  return withGraphDebug(parseCallGraph(raw, name, kind, true), raw);
 }
 
 json CxxIndexProvider::callees(const std::string& file, int line, int col) const {
   auto sym = symbolAt(file, line, col);
-  if (sym.empty()) return emptyGraph();
+  if (sym.value("name", "").empty()) return emptyGraph(sym);
   std::string name = sym.value("name", "");
   std::string kind = sym.value("kind", "symbol");
-  if (name.empty()) return emptyGraph();
-  return parseCallGraph(run("callees", name), name, kind, false);
+  std::string raw  = run("callees", name);
+  return withGraphDebug(parseCallGraph(raw, name, kind, false), raw);
 }
 
 // ---------------------------------------------------------------------------
@@ -302,20 +319,20 @@ json CxxIndexProvider::derivedByName(const std::string& symbol) const {
 
 json CxxIndexProvider::bases(const std::string& file, int line, int col) const {
   auto sym = symbolAt(file, line, col);
-  if (sym.empty()) return emptyGraph();
+  if (sym.value("name", "").empty()) return emptyGraph(sym);
   std::string name = sym.value("name", "");
   std::string kind = sym.value("kind", "class");
-  if (name.empty()) return emptyGraph();
-  return parseInheritanceGraph(run("bases", name), name, kind, false);
+  std::string raw  = run("bases", name);
+  return withGraphDebug(parseInheritanceGraph(raw, name, kind, false), raw);
 }
 
 json CxxIndexProvider::derived(const std::string& file, int line, int col) const {
   auto sym = symbolAt(file, line, col);
-  if (sym.empty()) return emptyGraph();
+  if (sym.value("name", "").empty()) return emptyGraph(sym);
   std::string name = sym.value("name", "");
   std::string kind = sym.value("kind", "class");
-  if (name.empty()) return emptyGraph();
-  return parseInheritanceGraph(run("derived", name), name, kind, true);
+  std::string raw  = run("derived", name);
+  return withGraphDebug(parseInheritanceGraph(raw, name, kind, true), raw);
 }
 
 // ---------------------------------------------------------------------------
@@ -408,11 +425,11 @@ json CxxIndexProvider::membersByName(const std::string& symbol) const {
 
 json CxxIndexProvider::members(const std::string& file, int line, int col) const {
   auto sym = symbolAt(file, line, col);
-  if (sym.empty()) return emptyGraph();
+  if (sym.value("name", "").empty()) return emptyGraph(sym);
   std::string name = sym.value("name", "");
   std::string kind = sym.value("kind", "class");
-  if (name.empty()) return emptyGraph();
-  return parseMembersGraph(run("members", name), name, kind);
+  std::string raw  = run("members", name);
+  return withGraphDebug(parseMembersGraph(raw, name, kind), raw);
 }
 
 // ---------------------------------------------------------------------------

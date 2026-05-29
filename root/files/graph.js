@@ -232,14 +232,35 @@ async function fetchAndShowGraph(baseUrl, line, col, title) {
     const resp = await fetch(url);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
+
     if (!data || !data.nodes || data.nodes.length === 0) {
-      _showGraphMsg(title, 'No results found for this position.');
+      // Build debug message from server-side debug fields
+      let msg = 'No symbol found at this position.';
+      const lines = [];
+
+      if (data._debug_query)
+        lines.push(`Query: ${data._debug_query}`);
+
+      if (data._debug_atOutput) {
+        const out = data._debug_atOutput.trim();
+        lines.push(`cxxidx at: ${out || '(empty)'}`);
+      }
+
+      if (data._debug_graphOutput) {
+        const out = data._debug_graphOutput.trim();
+        if (out) lines.push(`cxxidx ${title.toLowerCase()}: ${out}`);
+      }
+
+      if (lines.length > 0)
+        msg = lines.join('\n');
+
+      _showGraphMsg(title, msg);
       return;
     }
     showGraph(data, title);
   } catch (e) {
     console.error('Graph fetch failed:', e);
-    _showGraphMsg(title, 'Error fetching graph data.');
+    _showGraphMsg(title, `Error: ${e.message}`);
   }
 }
 
@@ -248,11 +269,18 @@ function _showGraphMsg(title, msg) {
   const titleEl = _graphPanel.querySelector('.graph-title');
   if (titleEl) titleEl.textContent = title;
   const tip = _graphPanel.querySelector('.graph-tooltip');
-  if (tip) tip.textContent = msg;
+  if (tip) tip.textContent = '';
   _graphPanel.style.display = 'flex';
   if (_graphResizer) _graphResizer.style.display = 'block';
+  if (typeof _monacoEditorInstance !== 'undefined' && _monacoEditorInstance)
+    _monacoEditorInstance.layout();
   const canvas = _graphPanel.querySelector('.graph-canvas');
-  if (canvas) canvas.innerHTML = `<div class="graph-empty">${msg}</div>`;
+  if (canvas) {
+    // Show each line of the debug message as a separate <p>
+    const lines = msg.split('\n').map(l =>
+      `<p class="graph-debug-line">${l}</p>`).join('');
+    canvas.innerHTML = `<div class="graph-debug-box">${lines}</div>`;
+  }
 }
 
 // ---------------------------------------------------------------------------
