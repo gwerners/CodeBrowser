@@ -9,6 +9,7 @@
 #include "Search.h"
 #include "crow.h"
 #include "ctags/CtagsProvider.h"
+#include "cxxindex/CxxIndexProvider.h"
 
 #define SOL_USE_MINILUA_HPP_I_ SOL_ON
 #define SOL_USING_MINILUA_HPP_I_ SOL_ON
@@ -63,5 +64,6 @@ class Server {
   Config _config;
   std::set<std::string> _openFiles;
   std::vector<SearchInfo> _searchInfo;
-  std::map<std::string, CtagsProvider> _ctagsProviders;
+  std::map<std::string, CtagsProvider>      _ctagsProviders;
+  std::map<std::string, CxxIndexProvider>   _cxxProviders;
 };

@@ -43,7 +43,8 @@ bool PipeAdapter::initialize() {
     dup2(_fromChild[1], STDOUT_FILENO);
     close(_toChild[0]);
     close(_fromChild[1]);
-    execlp(_cmd.c_str(), _cmd.c_str(), nullptr);
+    // Use sh -c so that _cmd can include arguments (e.g. "cxxlsp /path/index.cxxi")
+    execlp("/bin/sh", "/bin/sh", "-c", _cmd.c_str(), nullptr);
     fmt::print(fg(fmt::color::red), "Failed to execute {}\n", _cmd);
     _exit(1);
   }

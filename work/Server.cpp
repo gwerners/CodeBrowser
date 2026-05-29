@@ -126,6 +126,15 @@ void Server::updateCtagsIndexes() {
     _ctagsProviders[name] = std::move(provider);
     fmt::print(fg(fmt::color::green), "ctags [{}]: {} symbols\n", name,
                _ctagsProviders[name].symbolCount());
+
+    // Load cxxindex provider if a .cxxi path is configured for this project
+    if (!proj.cxxindex.empty()) {
+      _cxxProviders.emplace(name, CxxIndexProvider(_config.cxxidx, proj.cxxindex));
+      bool ok = _cxxProviders.at(name).isAvailable();
+      fmt::print(fg(ok ? fmt::color::green : fmt::color::yellow),
+                 "cxxindex [{}]: {} ({})\n", name, proj.cxxindex,
+                 ok ? "loaded" : "index not found");
+    }
   }
 }
 
@@ -712,6 +721,83 @@ void Server::run() {
                                   ctx.project, relPath);
     json resp = {{"url", url}};
     auto r = crow::response{resp.dump()};
+    r.add_header("Content-Type", "application/json");
+    return r;
+  });
+
+  // ---- cxx-index graph routes ----
+
+  auto getCxxProvider = [&](const std::string& project) -> CxxIndexProvider* {
+    auto it = _cxxProviders.find(project);
+    if (it == _cxxProviders.end()) return nullptr;
+    return &it->second;
+  };
+
+  CROW_ROUTE(app, "/callers")([&](const crow::request& req) {
+    auto ctx  = extractParams(req);
+    auto file = req.url_params.get("file") ? std::string(req.url_params.get("file")) : "";
+    int  line = req.url_params.get("line") ? std::stoi(req.url_params.get("line")) : 0;
+    int  col  = req.url_params.get("col")  ? std::stoi(req.url_params.get("col"))  : 0;
+    auto* prov = getCxxProvider(ctx.project);
+    json result = (prov && !file.empty()) ? prov->callers(file, line, col) : json::object();
+    auto r = crow::response{result.dump()};
+    r.add_header("Content-Type", "application/json");
+    return r;
+  });
+
+  CROW_ROUTE(app, "/callees")([&](const crow::request& req) {
+    auto ctx  = extractParams(req);
+    auto file = req.url_params.get("file") ? std::string(req.url_params.get("file")) : "";
+    int  line = req.url_params.get("line") ? std::stoi(req.url_params.get("line")) : 0;
+    int  col  = req.url_params.get("col")  ? std::stoi(req.url_params.get("col"))  : 0;
+    auto* prov = getCxxProvider(ctx.project);
+    json result = (prov && !file.empty()) ? prov->callees(file, line, col) : json::object();
+    auto r = crow::response{result.dump()};
+    r.add_header("Content-Type", "application/json");
+    return r;
+  });
+
+  CROW_ROUTE(app, "/bases")([&](const crow::request& req) {
+    auto ctx  = extractParams(req);
+    auto file = req.url_params.get("file") ? std::string(req.url_params.get("file")) : "";
+    int  line = req.url_params.get("line") ? std::stoi(req.url_params.get("line")) : 0;
+    int  col  = req.url_params.get("col")  ? std::stoi(req.url_params.get("col"))  : 0;
+    auto* prov = getCxxProvider(ctx.project);
+    json result = (prov && !file.empty()) ? prov->bases(file, line, col) : json::object();
+    auto r = crow::response{result.dump()};
+    r.add_header("Content-Type", "application/json");
+    return r;
+  });
+
+  CROW_ROUTE(app, "/derived")([&](const crow::request& req) {
+    auto ctx  = extractParams(req);
+    auto file = req.url_params.get("file") ? std::string(req.url_params.get("file")) : "";
+    int  line = req.url_params.get("line") ? std::stoi(req.url_params.get("line")) : 0;
+    int  col  = req.url_params.get("col")  ? std::stoi(req.url_params.get("col"))  : 0;
+    auto* prov = getCxxProvider(ctx.project);
+    json result = (prov && !file.empty()) ? prov->derived(file, line, col) : json::object();
+    auto r = crow::response{result.dump()};
+    r.add_header("Content-Type", "application/json");
+    return r;
+  });
+
+  CROW_ROUTE(app, "/members")([&](const crow::request& req) {
+    auto ctx  = extractParams(req);
+    auto file = req.url_params.get("file") ? std::string(req.url_params.get("file")) : "";
+    int  line = req.url_params.get("line") ? std::stoi(req.url_params.get("line")) : 0;
+    int  col  = req.url_params.get("col")  ? std::stoi(req.url_params.get("col"))  : 0;
+    auto* prov = getCxxProvider(ctx.project);
+    json result = (prov && !file.empty()) ? prov->members(file, line, col) : json::object();
+    auto r = crow::response{result.dump()};
+    r.add_header("Content-Type", "application/json");
+    return r;
+  });
+
+  CROW_ROUTE(app, "/index-status")([&](const crow::request& req) {
+    auto ctx   = extractParams(req);
+    auto* prov = getCxxProvider(ctx.project);
+    json result = prov ? prov->status() : json{{"available", false}};
+    auto r = crow::response{result.dump()};
     r.add_header("Content-Type", "application/json");
     return r;
   });

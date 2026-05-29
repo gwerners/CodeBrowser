@@ -22,6 +22,7 @@ set(SRC
   lsp/LspClient.cpp
   lsp/PipeAdapter.cpp
   ctags/CtagsProvider.cpp
+  cxxindex/CxxIndexProvider.cpp
   indexer/GrepSearcher.cpp)
 
 # Lucy full-text search (optional)

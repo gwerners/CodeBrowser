@@ -10,7 +10,8 @@ using json = nlohmann::json;
 struct ProjectInfo {
   std::string name;
   std::string source;
-  std::string index;
+  std::string index;      // full-text search index directory
+  std::string cxxindex;   // path to .cxxi file (cxx-index)
 };
 
 class Config {
@@ -40,8 +41,11 @@ class Config {
   std::string annotatePage;
   std::string searchPage;
 
-  // Symbol provider: "clangd" or "ctags"
+  // Symbol provider: "clangd", "ctags", or "cxxlsp"
   std::string symbolProvider;
+
+  // Path to cxxidx binary (used when symbol-provider is "cxxlsp")
+  std::string cxxidx;
 
   // Search engine: "lucy" or "grep"
   std::string searchEngine;

@@ -46,6 +46,7 @@ void Config::load(const std::string& configFile,
   updateIndex = data["update-index"];
   indexTimestamp = data["index-timestamp"];
   symbolProvider = data["symbol-provider"];
+  cxxidx = data.value("cxxidx", "cxxidx");
 #ifdef USE_LUCY
   searchEngine = data["search-engine"];
 #else
@@ -67,6 +68,8 @@ void Config::load(const std::string& configFile,
       info.name = proj["name"];
       info.source = resolve(proj["source"]);
       info.index = resolve(proj["index"]);
+      if (proj.contains("cxxindex") && !proj["cxxindex"].get<std::string>().empty())
+        info.cxxindex = resolve(proj["cxxindex"]);
       projects[info.name] = info;
     }
   }
