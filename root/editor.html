@@ -35,6 +35,7 @@ else
   print("            <li><a href=\"" .. serverUrl .. "/annotate?project=" .. project .. "&path=" .. path .. "&hash=" .. hash .. "\">Annotate</a></li>\n")
 end
 print("            <li><a href=\"#\" onclick=\"toggleSymbolPanel(editorConfig.symbolsUrl); return false;\">Symbols</a></li>\n")
+print("            <li><a href=\"#\" onclick=\"openSettings(); return false;\">Settings</a></li>\n")
 %lua%-->
           </ul>
         </div>
@@ -79,7 +80,10 @@ print("      callersUrl: '" .. serverUrl .. "/callers?project=" .. project .. "&
 print("      calleesUrl: '" .. serverUrl .. "/callees?project=" .. project .. "&path=" .. path .. "',\n")
 print("      basesUrl:   '" .. serverUrl .. "/bases?project="   .. project .. "&path=" .. path .. "',\n")
 print("      derivedUrl: '" .. serverUrl .. "/derived?project=" .. project .. "&path=" .. path .. "',\n")
-print("      membersUrl: '" .. serverUrl .. "/members?project=" .. project .. "&path=" .. path .. "',\n")
+print("      membersUrl:      '" .. serverUrl .. "/members?project="      .. project .. "&path=" .. path .. "',\n")
+print("      backendsUrl:     '" .. serverUrl .. "/backends',\n")
+print("      indexStatusUrl:  '" .. serverUrl .. "/index-status?project=" .. project .. "',\n")
+print("      indexRefreshUrl: '" .. serverUrl .. "/index-refresh?project=" .. project .. "',\n")
 print("      lineNumber: " .. line .. ",\n")
 print("      lang: '" .. suffix .. "',\n")
 print("    };\n")
@@ -103,5 +107,31 @@ print("    };\n")
       document.getElementById('graphResizer')
     );
   </script>
+
+  <!-- Settings modal -->
+  <div id="settingsOverlay" class="settings-overlay" onclick="closeSettings(event)">
+    <div class="settings-modal">
+      <div class="settings-header">
+        <span>&#9881; Code Navigation Settings</span>
+        <button class="settings-close" onclick="closeSettings(null)">&times;</button>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Active Backend</div>
+        <div id="backendList" class="backend-list">Loading...</div>
+        <div class="settings-note">To change the backend, edit config.json and restart the server.</div>
+      </div>
+
+      <div class="settings-section" id="indexSection" style="display:none">
+        <div class="settings-section-title">C++ Index (cxxlsp)</div>
+        <div id="indexInfo" class="index-info">Loading...</div>
+        <div class="index-actions">
+          <button id="refreshBtn" class="refresh-btn" onclick="triggerRefresh()">&#8635; Re-index Now</button>
+          <span id="refreshStatus" class="refresh-status"></span>
+        </div>
+        <div id="indexLog" class="index-log" style="display:none"></div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

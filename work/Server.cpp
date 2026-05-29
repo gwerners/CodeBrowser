@@ -1,4 +1,5 @@
 #include "Server.h"
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <thread>
@@ -13,6 +14,7 @@
 #include "indexer/FullTextSearcher.h"
 #endif
 #include "lsp/LspClient.h"
+#include "PipeCommand.h"
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
@@ -834,7 +836,125 @@ void Server::run() {
     auto ctx   = extractParams(req);
     auto* prov = getCxxProvider(ctx.project);
     json result = prov ? prov->status() : json{{"available", false}};
+
+    // Append live indexing state if a job exists for this project
+    auto jit = _indexStatus.find(ctx.project);
+    if (jit != _indexStatus.end()) {
+      auto& job = *jit->second;
+      result["indexing"] = job.running.load();
+      result["exitCode"] = job.exitCode;
+      std::lock_guard<std::mutex> lock(job.mutex);
+      result["log"] = job.log;
+    } else {
+      result["indexing"] = false;
+    }
     return graphResponse(result);
+  });
+
+  // ---- Backend detection ----
+
+  auto detectBin = [](const std::string& bin, const std::string& flag = "--version")
+      -> std::pair<bool, std::string> {
+    if (bin.empty()) return {false, ""};
+    std::string out = PipeCommand::cmd(bin, flag.c_str());
+    if (out.empty()) return {false, ""};
+    auto nl = out.find('\n');
+    std::string ver = (nl == std::string::npos) ? out : out.substr(0, nl);
+    while (!ver.empty() && (ver.back() == ' ' || ver.back() == '\r'))
+      ver.pop_back();
+    return {true, ver};
+  };
+
+  CROW_ROUTE(app, "/backends")([&](const crow::request& /*req*/) {
+    // Always check the three known backends regardless of active provider
+    auto [cxxlspOk, cxxlspVer] = detectBin(_config.lsp.find("cxxlsp") != std::string::npos
+                                             ? _config.lsp : "cxxlsp");
+    auto [clangdOk, clangdVer] = detectBin("clangd");
+    auto [ctagsOk,  ctagsVer]  = detectBin("ctags");
+    auto [cxxidxOk, cxxidxVer] = detectBin(_config.cxxidx);
+
+    json backends = json::array();
+    backends.push_back({
+      {"name", "cxxlsp"}, {"available", cxxlspOk}, {"version", cxxlspVer},
+      {"description", "Deep C++ navigation — pre-indexed, fast queries"},
+    });
+    backends.push_back({
+      {"name", "clangd"}, {"available", clangdOk}, {"version", clangdVer},
+      {"description", "Full semantic analysis — completion and diagnostics"},
+    });
+    backends.push_back({
+      {"name", "ctags"}, {"available", ctagsOk}, {"version", ctagsVer},
+      {"description", "Universal — any language, no compilation required"},
+    });
+
+    json result;
+    result["active"]   = _config.symbolProvider;
+    result["cxxidx"]   = {{"available", cxxidxOk}, {"version", cxxidxVer}};
+    result["backends"] = backends;
+    return graphResponse(result);
+  });
+
+  // ---- Background re-index ----
+
+  CROW_ROUTE(app, "/index-refresh").methods("POST"_method)
+  ([&](const crow::request& req) {
+    auto ctx = extractParams(req);
+    auto pit = _config.projects.find(ctx.project);
+    if (pit == _config.projects.end())
+      return crow::response{400, "unknown project"};
+
+    const auto& proj = pit->second;
+    if (proj.cxxindex.empty())
+      return crow::response{400, "cxxindex not configured for this project"};
+
+    // Ensure the job entry exists and is not already running
+    auto& jobPtr = _indexStatus[ctx.project];
+    if (!jobPtr) jobPtr = std::make_shared<IndexStatus>();
+    if (jobPtr->running)
+      return crow::response{409, "indexing already in progress"};
+
+    // Auto-detect compile_commands.json if not configured
+    std::string ccdb = proj.compilationDb;
+    if (ccdb.empty()) {
+      for (const auto& candidate : {
+          proj.source + "/compile_commands.json",
+          proj.source + "/build/compile_commands.json",
+      }) {
+        if (fileExists(candidate)) { ccdb = candidate; break; }
+      }
+    }
+    if (ccdb.empty())
+      return crow::response{404, "compile_commands.json not found"};
+
+    // Start background thread
+    jobPtr->running  = true;
+    jobPtr->exitCode = -1;
+    { std::lock_guard<std::mutex> lk(jobPtr->mutex); jobPtr->log.clear(); }
+
+    std::thread([job = jobPtr,
+                 cxxidx  = _config.cxxidx,
+                 ccdb,
+                 output  = proj.cxxindex]() {
+      std::string cmd = "\"" + cxxidx + "\" index \""
+                      + ccdb + "\" -o \"" + output + "\" -v 2>&1";
+      FILE* pipe = popen(cmd.c_str(), "r");
+      if (!pipe) { job->running = false; return; }
+
+      char buf[512];
+      while (fgets(buf, sizeof(buf), pipe)) {
+        std::string line(buf);
+        if (!line.empty() && line.back() == '\n') line.pop_back();
+        std::lock_guard<std::mutex> lk(job->mutex);
+        job->log.push_back(line);
+        if (job->log.size() > 200)
+          job->log.erase(job->log.begin());
+      }
+      int code = pclose(pipe);
+      job->exitCode = code;
+      job->running  = false;
+    }).detach();
+
+    return crow::response{200};
   });
 
   app.port(_config.port).multithreaded().run();

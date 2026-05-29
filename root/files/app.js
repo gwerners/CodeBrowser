@@ -548,6 +548,192 @@ function jumpToLine(line) {
   }
 }
 
+// === Settings modal (Phase C) ===
+
+let _settingsPollTimer = null;
+
+function openSettings() {
+  const overlay = document.getElementById('settingsOverlay');
+  if (!overlay) return;
+  overlay.style.display = 'flex';
+  _loadSettingsData();
+}
+
+function closeSettings(event) {
+  if (event && event.target !== document.getElementById('settingsOverlay')) return;
+  const overlay = document.getElementById('settingsOverlay');
+  if (overlay) overlay.style.display = 'none';
+  _stopPoll();
+}
+
+async function _loadSettingsData() {
+  if (!editorConfig.backendsUrl) return;
+
+  // Backends
+  try {
+    const resp = await fetch(editorConfig.backendsUrl);
+    const data = await resp.json();
+    _renderBackends(data);
+  } catch (e) {
+    document.getElementById('backendList').textContent = 'Failed to load backends.';
+  }
+
+  // Index status
+  if (editorConfig.indexStatusUrl) {
+    _refreshIndexStatus();
+  }
+}
+
+function _renderBackends(data) {
+  const container = document.getElementById('backendList');
+  if (!container) return;
+
+  const descriptions = {
+    cxxlsp:  'Deep C++ navigation — pre-indexed, fast queries',
+    clangd:  'Full semantic analysis — completion and diagnostics',
+    ctags:   'Universal — any language, no compilation required',
+  };
+
+  let html = '';
+  for (const b of (data.backends || [])) {
+    const isActive  = b.name === data.active;
+    const dot       = isActive ? '<span class="backend-dot active">●</span>'
+                               : '<span class="backend-dot">○</span>';
+    const badge     = b.available
+        ? '<span class="badge available">available</span>'
+        : '<span class="badge unavailable">not found</span>';
+    const activeTag = isActive ? '<span class="badge active-tag">active</span>' : '';
+    const desc      = descriptions[b.name] || '';
+    const ver       = b.version ? `<span class="backend-ver">${b.version}</span>` : '';
+
+    html += `<div class="backend-row${isActive ? ' is-active' : ''}">
+      ${dot}
+      <div class="backend-info">
+        <span class="backend-name">${b.name}</span>${activeTag}${badge}${ver}
+        <div class="backend-desc">${desc}</div>
+      </div>
+    </div>`;
+  }
+
+  // cxxidx tool status
+  if (data.cxxidx) {
+    const ci = data.cxxidx;
+    const badge = ci.available
+        ? `<span class="badge available">available</span> <span class="backend-ver">${ci.version || ''}</span>`
+        : '<span class="badge unavailable">not found</span>';
+    html += `<div class="backend-row cxxidx-row">
+      <span class="backend-dot">⚙</span>
+      <div class="backend-info">
+        <span class="backend-name">cxxidx</span>${badge}
+        <div class="backend-desc">Indexing tool for cxxlsp</div>
+      </div>
+    </div>`;
+  }
+
+  container.innerHTML = html;
+
+  // Show index section only when cxxlsp is active and cxxidx is available
+  const indexSection = document.getElementById('indexSection');
+  if (indexSection && data.active === 'cxxlsp' && data.cxxidx && data.cxxidx.available)
+    indexSection.style.display = 'block';
+}
+
+async function _refreshIndexStatus() {
+  if (!editorConfig.indexStatusUrl) return;
+  try {
+    const resp = await fetch(editorConfig.indexStatusUrl);
+    const data = await resp.json();
+    _renderIndexStatus(data);
+
+    if (data.indexing) {
+      _startPoll();
+    } else {
+      _stopPoll();
+    }
+  } catch (e) {
+    document.getElementById('indexInfo').textContent = 'Failed to load index status.';
+  }
+}
+
+function _renderIndexStatus(data) {
+  const info = document.getElementById('indexInfo');
+  if (!info) return;
+
+  if (!data.available) {
+    info.innerHTML = '<span class="badge unavailable">index not found</span> '
+                   + (data.indexPath || '');
+    return;
+  }
+
+  info.innerHTML = `
+    <table class="index-stats">
+      <tr><td>Index file</td><td class="mono">${data.indexPath || '-'}</td></tr>
+      <tr><td>Nodes</td><td class="mono">${(data.nodes || 0).toLocaleString()}</td></tr>
+      <tr><td>Edges</td><td class="mono">${(data.edges || 0).toLocaleString()}</td></tr>
+      <tr><td>Occurrences</td><td class="mono">${(data.occurrences || 0).toLocaleString()}</td></tr>
+    </table>`;
+
+  // Progress / log
+  const logEl = document.getElementById('indexLog');
+  const statusEl = document.getElementById('refreshStatus');
+  const btn = document.getElementById('refreshBtn');
+
+  if (data.indexing) {
+    if (btn) btn.disabled = true;
+    if (statusEl) statusEl.textContent = 'Indexing in progress…';
+    if (logEl && data.log && data.log.length > 0) {
+      logEl.style.display = 'block';
+      logEl.textContent = data.log.slice(-20).join('\n');
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+  } else {
+    if (btn) btn.disabled = false;
+    if (data.exitCode !== undefined && data.exitCode !== -1) {
+      const ok = data.exitCode === 0;
+      if (statusEl) statusEl.textContent = ok ? '✓ Done' : `✗ Exit ${data.exitCode}`;
+    }
+    if (logEl && data.log && data.log.length > 0) {
+      logEl.style.display = 'block';
+      logEl.textContent = data.log.slice(-5).join('\n');
+    }
+  }
+}
+
+async function triggerRefresh() {
+  if (!editorConfig.indexRefreshUrl) return;
+  const btn = document.getElementById('refreshBtn');
+  const statusEl = document.getElementById('refreshStatus');
+  if (btn) btn.disabled = true;
+  if (statusEl) statusEl.textContent = 'Starting…';
+
+  try {
+    const resp = await fetch(editorConfig.indexRefreshUrl, { method: 'POST' });
+    if (resp.ok) {
+      if (statusEl) statusEl.textContent = 'Indexing started…';
+      _startPoll();
+    } else {
+      const text = await resp.text();
+      if (statusEl) statusEl.textContent = `Error: ${text}`;
+      if (btn) btn.disabled = false;
+    }
+  } catch (e) {
+    if (statusEl) statusEl.textContent = 'Request failed.';
+    if (btn) btn.disabled = false;
+  }
+}
+
+function _startPoll() {
+  if (_settingsPollTimer) return;
+  _settingsPollTimer = setInterval(_refreshIndexStatus, 2000);
+}
+
+function _stopPoll() {
+  if (_settingsPollTimer) {
+    clearInterval(_settingsPollTimer);
+    _settingsPollTimer = null;
+  }
+}
+
 // === History page utilities ===
 
 function toggleAllFileLists(link) {

@@ -10,8 +10,9 @@ using json = nlohmann::json;
 struct ProjectInfo {
   std::string name;
   std::string source;
-  std::string index;      // full-text search index directory
-  std::string cxxindex;   // path to .cxxi file (cxx-index)
+  std::string index;           // full-text search index directory
+  std::string cxxindex;        // path to .cxxi file (cxx-index)
+  std::string compilationDb;   // path to compile_commands.json (for cxxidx)
 };
 
 class Config {

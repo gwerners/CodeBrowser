@@ -1,8 +1,11 @@
 #pragma once
+#include <atomic>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <set>
 #include <string>
+#include <thread>
 #include <vector>
 #include "Config.h"
 #include "FileInfo.h"
@@ -17,6 +20,14 @@
 #include <sol/sol.hpp>
 
 // Request context extracted from URL parameters
+// Per-project background indexing status
+struct IndexStatus {
+  std::atomic<bool>        running{false};
+  std::vector<std::string> log;      // rolling tail of cxxidx output
+  int                      exitCode = -1;
+  std::mutex               mutex;
+};
+
 struct RequestContext {
   std::string project;
   std::string root;       // project source root + path
@@ -64,6 +75,7 @@ class Server {
   Config _config;
   std::set<std::string> _openFiles;
   std::vector<SearchInfo> _searchInfo;
-  std::map<std::string, CtagsProvider>      _ctagsProviders;
-  std::map<std::string, CxxIndexProvider>   _cxxProviders;
+  std::map<std::string, CtagsProvider>                       _ctagsProviders;
+  std::map<std::string, CxxIndexProvider>                    _cxxProviders;
+  std::map<std::string, std::shared_ptr<IndexStatus>>        _indexStatus;
 };

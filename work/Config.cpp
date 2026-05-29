@@ -70,6 +70,8 @@ void Config::load(const std::string& configFile,
       info.index = resolve(proj["index"]);
       if (proj.contains("cxxindex") && !proj["cxxindex"].get<std::string>().empty())
         info.cxxindex = resolve(proj["cxxindex"]);
+      if (proj.contains("compilation-db") && !proj["compilation-db"].get<std::string>().empty())
+        info.compilationDb = resolve(proj["compilation-db"]);
       projects[info.name] = info;
     }
   }
