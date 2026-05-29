@@ -149,15 +149,15 @@ json CxxIndexProvider::parseSymbolAt(const std::string& output) const {
 }
 
 json CxxIndexProvider::symbolAt(const std::string& file, int line, int col) const {
-  std::string out = run("at", file,
-                        std::to_string(line) + " " + std::to_string(col));
-  // cxxidx at takes 4 args; PipeCommand doesn't support that directly — use
-  // the 2-arg form with a composed arg string is not possible. Use run directly.
-  // Actually we need 4 args: cxxidx at <index> <file> <line> <col>
-  std::string result = PipeCommand::cmd(
+  // cxxidx at <index> <file> <line> <col>  — four separate arguments.
+  // Store line/col as named strings so their c_str() pointers stay valid
+  // across the fork() inside PipeCommand::cmd.
+  std::string lineStr = std::to_string(line);
+  std::string colStr  = std::to_string(col);
+  std::string output  = PipeCommand::cmd(
       _cxxidxBin, "at", _indexPath.c_str(), file.c_str(),
-      std::to_string(line).c_str(), std::to_string(col).c_str());
-  return parseSymbolAt(result);
+      lineStr.c_str(), colStr.c_str());
+  return parseSymbolAt(output);
 }
 
 // ---------------------------------------------------------------------------
@@ -214,32 +214,37 @@ json CxxIndexProvider::parseCallGraph(const std::string& output,
 }
 
 json CxxIndexProvider::callersByName(const std::string& symbol) const {
-  auto sym = parseSymbolAt(run("at", symbol));
-  std::string kind = sym.value("kind", "symbol");
-  return parseCallGraph(run("callers", symbol), symbol, kind, true);
+  // "at" needs file:line:col, not a name — skip kind lookup, use "symbol" fallback
+  return parseCallGraph(run("callers", symbol), symbol, "symbol", true);
 }
 
 json CxxIndexProvider::calleesByName(const std::string& symbol) const {
-  auto sym = parseSymbolAt(run("at", symbol));
-  std::string kind = sym.value("kind", "symbol");
-  return parseCallGraph(run("callees", symbol), symbol, kind, false);
+  return parseCallGraph(run("callees", symbol), symbol, "symbol", false);
+}
+
+static json emptyGraph() {
+  json g;
+  g["center"] = nullptr;
+  g["nodes"]  = json::array();
+  g["edges"]  = json::array();
+  return g;
 }
 
 json CxxIndexProvider::callers(const std::string& file, int line, int col) const {
   auto sym = symbolAt(file, line, col);
-  if (sym.empty()) return {};
+  if (sym.empty()) return emptyGraph();
   std::string name = sym.value("name", "");
   std::string kind = sym.value("kind", "symbol");
-  if (name.empty()) return {};
+  if (name.empty()) return emptyGraph();
   return parseCallGraph(run("callers", name), name, kind, true);
 }
 
 json CxxIndexProvider::callees(const std::string& file, int line, int col) const {
   auto sym = symbolAt(file, line, col);
-  if (sym.empty()) return {};
+  if (sym.empty()) return emptyGraph();
   std::string name = sym.value("name", "");
   std::string kind = sym.value("kind", "symbol");
-  if (name.empty()) return {};
+  if (name.empty()) return emptyGraph();
   return parseCallGraph(run("callees", name), name, kind, false);
 }
 
@@ -288,32 +293,28 @@ json CxxIndexProvider::parseInheritanceGraph(const std::string& output,
 }
 
 json CxxIndexProvider::basesByName(const std::string& symbol) const {
-  auto sym = parseSymbolAt(run("at", symbol));
-  std::string kind = sym.value("kind", "class");
-  return parseInheritanceGraph(run("bases", symbol), symbol, kind, false);
+  return parseInheritanceGraph(run("bases", symbol), symbol, "class", false);
 }
 
 json CxxIndexProvider::derivedByName(const std::string& symbol) const {
-  auto sym = parseSymbolAt(run("at", symbol));
-  std::string kind = sym.value("kind", "class");
-  return parseInheritanceGraph(run("derived", symbol), symbol, kind, true);
+  return parseInheritanceGraph(run("derived", symbol), symbol, "class", true);
 }
 
 json CxxIndexProvider::bases(const std::string& file, int line, int col) const {
   auto sym = symbolAt(file, line, col);
-  if (sym.empty()) return {};
+  if (sym.empty()) return emptyGraph();
   std::string name = sym.value("name", "");
   std::string kind = sym.value("kind", "class");
-  if (name.empty()) return {};
+  if (name.empty()) return emptyGraph();
   return parseInheritanceGraph(run("bases", name), name, kind, false);
 }
 
 json CxxIndexProvider::derived(const std::string& file, int line, int col) const {
   auto sym = symbolAt(file, line, col);
-  if (sym.empty()) return {};
+  if (sym.empty()) return emptyGraph();
   std::string name = sym.value("name", "");
   std::string kind = sym.value("kind", "class");
-  if (name.empty()) return {};
+  if (name.empty()) return emptyGraph();
   return parseInheritanceGraph(run("derived", name), name, kind, true);
 }
 
@@ -372,17 +373,15 @@ json CxxIndexProvider::parseMembersGraph(const std::string& output,
 }
 
 json CxxIndexProvider::membersByName(const std::string& symbol) const {
-  auto sym = parseSymbolAt(run("at", symbol));
-  std::string kind = sym.value("kind", "class");
-  return parseMembersGraph(run("members", symbol), symbol, kind);
+  return parseMembersGraph(run("members", symbol), symbol, "symbol");
 }
 
 json CxxIndexProvider::members(const std::string& file, int line, int col) const {
   auto sym = symbolAt(file, line, col);
-  if (sym.empty()) return {};
+  if (sym.empty()) return emptyGraph();
   std::string name = sym.value("name", "");
   std::string kind = sym.value("kind", "class");
-  if (name.empty()) return {};
+  if (name.empty()) return emptyGraph();
   return parseMembersGraph(run("members", name), name, kind);
 }
 
