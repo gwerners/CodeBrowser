@@ -187,14 +187,14 @@ function _renderCytoscape(data) {
     wheelSensitivity: 0.3,
   });
 
-  // Single click: navigate if URL exists, otherwise show tooltip
+  // Single click: open in new tab if URL exists, otherwise show tooltip
   _cy.on('tap', 'node', (evt) => {
     const n   = evt.target;
     const url = n.data('url');
     const tip = _graphPanel.querySelector('.graph-tooltip');
 
     if (url) {
-      window.location.href = url;
+      window.open(url, '_blank');
     } else {
       // No URL (e.g. symbol from un-indexed system headers) — show info
       if (tip) {
