@@ -1,15 +1,20 @@
 {
-    "symbol-provider": "clangd",
+    "symbol-provider": "ctags",
+    "search-engine": "grep",
+    "update-index": false,
+    "cxxidx": "/home/gwerners/projects_antigravity/cxx-index/build/cxxidx",
+    "lsp":   "/home/gwerners/projects_antigravity/cxx-index/build/cxxlsp",
     "projects": [
         {
-            "name": "CodeBrowser_old",
-            "source": "/home/gwerners/projects_claude/CodeBrowser_old",
-            "index": "index/CodeBrowser_old-index"
+            "name": "CodeBrowser",
+            "source": "/home/gwerners/projects_antigravity/CodeBrowser",
+            "index": "index/codebrowser"
         },
         {
-            "name": "lucy-clownfish",
-            "source": "/home/gwerners/projects_claude/CodeBrowser_old/lucy-clownfish/compiler",
-            "index": "index/lucy-clownfish-index"
+            "name": "cxx-index",
+            "source": "/home/gwerners/projects_antigravity/cxx-index",
+            "index": "index/cxx-index",
+            "cxxindex": "/tmp/cxxindex_test.cxxi"
         }
     ]
 }

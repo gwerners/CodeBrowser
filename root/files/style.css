@@ -631,6 +631,33 @@ a.sym-item:hover {
 .index-stats td:first-child { color: var(--text-faded); width: 110px; }
 .index-stats .mono { font-family: monospace; }
 
+/* Index load form */
+.index-load-form { margin-top: 10px; }
+.load-label { display: block; font-size: 11px; color: var(--text-faded); margin-bottom: 4px; }
+.load-row { display: flex; gap: 8px; align-items: center; }
+.load-input {
+  flex: 1;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-family: monospace;
+  background: var(--input-bg);
+  color: var(--input-text);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+}
+.load-btn {
+  padding: 5px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  background: var(--accent);
+  color: #1e1e2e;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+.load-btn:hover { opacity: 0.85; }
+
 .index-actions { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
 
 .refresh-btn {

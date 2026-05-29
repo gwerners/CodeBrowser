@@ -214,6 +214,8 @@ Click **Annotate** from the editor to see git blame. Each line shows the commit 
 
 Click **Settings** in the editor navbar to open the settings modal.
 
+![Settings modal](images/settings_modal.png)
+
 **Backend section** shows all three backends with availability badges:
 
 - `available` (green) — binary found on PATH or configured path
@@ -222,11 +224,25 @@ Click **Settings** in the editor navbar to open the settings modal.
 
 > To change the active backend, edit `config.json` and restart the server.
 
-**C++ Index section** (visible when `symbol-provider` is `cxxlsp`):
+**C++ Index (Graph Navigation) section** — always visible, independent of the active backend:
 
-- Shows the number of nodes, edges, and occurrences in the current index
-- **Re-index Now** button — triggers `cxxidx index` in the background;
-  a log stream appears showing progress; the button is disabled while indexing
+- Shows whether an index is loaded and its statistics (nodes, edges, occurrences)
+- **Index file (.cxxi)** input — enter the path to an existing `.cxxi` file
+- **Load** button — loads the index into memory immediately, **no server restart needed**
+- **Re-index Now** button — triggers `cxxidx index` in the background once an index is loaded;
+  a log stream appears showing progress
+
+### Loading an existing index at runtime
+
+You can use graph navigation (callers, callees, inheritance) on top of any active backend (ctags or clangd) by loading a pre-built index:
+
+1. Build the index with `cxxidx` (see [section 12](#12-c-graph-navigation-cxxlsp))
+2. Open **Settings**
+3. Enter the `.cxxi` path in the **Index file** field
+4. Click **Load**
+5. The statistics appear immediately — right-click menu now shows graph actions
+
+No `config.json` change or restart required.
 
 ---
 

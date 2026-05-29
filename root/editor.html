@@ -83,7 +83,9 @@ print("      derivedUrl: '" .. serverUrl .. "/derived?project=" .. project .. "&
 print("      membersUrl:      '" .. serverUrl .. "/members?project="      .. project .. "&path=" .. path .. "',\n")
 print("      backendsUrl:     '" .. serverUrl .. "/backends',\n")
 print("      indexStatusUrl:  '" .. serverUrl .. "/index-status?project=" .. project .. "',\n")
-print("      indexRefreshUrl: '" .. serverUrl .. "/index-refresh?project=" .. project .. "',\n")
+print("      indexRefreshUrl:  '" .. serverUrl .. "/index-refresh?project=" .. project .. "',\n")
+print("      loadIndexUrl:     '" .. serverUrl .. "/load-cxxindex?project=" .. project .. "',\n")
+print("      project:  '" .. project .. "',\n")
 print("      lineNumber: " .. line .. ",\n")
 print("      lang: '" .. suffix .. "',\n")
 print("    };\n")
@@ -122,10 +124,22 @@ print("    };\n")
         <div class="settings-note">To change the backend, edit config.json and restart the server.</div>
       </div>
 
-      <div class="settings-section" id="indexSection" style="display:none">
-        <div class="settings-section-title">C++ Index (cxxlsp)</div>
-        <div id="indexInfo" class="index-info">Loading...</div>
-        <div class="index-actions">
+      <div class="settings-section" id="indexSection">
+        <div class="settings-section-title">C++ Index (Graph Navigation)</div>
+        <div id="indexInfo" class="index-info"></div>
+
+        <div class="index-load-form">
+          <label class="load-label">Index file (.cxxi)</label>
+          <div class="load-row">
+            <input id="indexPathInput" type="text" class="load-input"
+                   placeholder="/path/to/project/index.cxxi"
+                   onkeydown="if(event.key==='Enter') loadIndex()">
+            <button class="load-btn" onclick="loadIndex()">Load</button>
+          </div>
+          <span id="loadStatus" class="refresh-status"></span>
+        </div>
+
+        <div class="index-actions" id="reindexActions" style="display:none">
           <button id="refreshBtn" class="refresh-btn" onclick="triggerRefresh()">&#8635; Re-index Now</button>
           <span id="refreshStatus" class="refresh-status"></span>
         </div>

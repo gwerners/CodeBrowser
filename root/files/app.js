@@ -569,19 +569,16 @@ function closeSettings(event) {
 async function _loadSettingsData() {
   if (!editorConfig.backendsUrl) return;
 
-  // Backends
   try {
     const resp = await fetch(editorConfig.backendsUrl);
     const data = await resp.json();
     _renderBackends(data);
+    _renderIndexFromBackendsData(data);
   } catch (e) {
     document.getElementById('backendList').textContent = 'Failed to load backends.';
   }
 
-  // Index status
-  if (editorConfig.indexStatusUrl) {
-    _refreshIndexStatus();
-  }
+  if (editorConfig.indexStatusUrl) _refreshIndexStatus();
 }
 
 function _renderBackends(data) {
@@ -632,10 +629,38 @@ function _renderBackends(data) {
 
   container.innerHTML = html;
 
-  // Show index section only when cxxlsp is active and cxxidx is available
-  const indexSection = document.getElementById('indexSection');
-  if (indexSection && data.active === 'cxxlsp' && data.cxxidx && data.cxxidx.available)
-    indexSection.style.display = 'block';
+}
+
+// Populate the index load form from the /backends response (per-project data)
+function _renderIndexFromBackendsData(data) {
+  const project = editorConfig.project || '';
+  const projData = (data.projects || {})[project];
+  if (!projData) return;
+
+  const input = document.getElementById('indexPathInput');
+  const info  = document.getElementById('indexInfo');
+  const acts  = document.getElementById('reindexActions');
+
+  if (projData.loaded) {
+    // Pre-fill the path field with the currently loaded index
+    if (input && !input.value) input.value = projData.indexPath || '';
+    if (info) {
+      info.innerHTML = `
+        <span class="badge available">loaded</span>
+        <span class="backend-ver">${projData.indexPath || ''}</span>
+        <table class="index-stats" style="margin-top:6px">
+          <tr><td>Nodes</td><td class="mono">${(projData.nodes||0).toLocaleString()}</td></tr>
+          <tr><td>Edges</td><td class="mono">${(projData.edges||0).toLocaleString()}</td></tr>
+          <tr><td>Occurrences</td><td class="mono">${(projData.occurrences||0).toLocaleString()}</td></tr>
+        </table>`;
+    }
+    if (acts) acts.style.display = 'flex';
+  } else {
+    if (input && projData.indexPath && !input.value)
+      input.value = projData.indexPath;
+    if (info) info.innerHTML = '<span class="badge unavailable">not loaded</span>';
+    if (acts) acts.style.display = 'none';
+  }
 }
 
 async function _refreshIndexStatus() {
@@ -696,6 +721,35 @@ function _renderIndexStatus(data) {
       logEl.style.display = 'block';
       logEl.textContent = data.log.slice(-5).join('\n');
     }
+  }
+}
+
+async function loadIndex() {
+  const input    = document.getElementById('indexPathInput');
+  const statusEl = document.getElementById('loadStatus');
+  const path     = input ? input.value.trim() : '';
+
+  if (!path) { if (statusEl) statusEl.textContent = 'Enter a path first.'; return; }
+  if (!editorConfig.loadIndexUrl) { if (statusEl) statusEl.textContent = 'loadIndexUrl not configured.'; return; }
+
+  if (statusEl) statusEl.textContent = 'Loading…';
+
+  try {
+    const url  = `${editorConfig.loadIndexUrl}&indexPath=${encodeURIComponent(path)}`;
+    const resp = await fetch(url, { method: 'POST' });
+    const data = await resp.json();
+
+    if (resp.ok && data.loaded) {
+      if (statusEl) statusEl.textContent =
+        `✓ Loaded — ${(data.nodes||0).toLocaleString()} nodes, ${(data.edges||0).toLocaleString()} edges`;
+      // Refresh to show updated stats
+      _loadSettingsData();
+    } else {
+      const text = await resp.text().catch(() => JSON.stringify(data));
+      if (statusEl) statusEl.textContent = `✗ ${resp.status}: ${text}`;
+    }
+  } catch (e) {
+    if (statusEl) statusEl.textContent = `✗ ${e.message}`;
   }
 }
 

@@ -887,10 +887,60 @@ void Server::run() {
       {"description", "Universal — any language, no compilation required"},
     });
 
+    // Include per-project cxx-index status
+    json projects = json::object();
+    for (auto& [name, proj] : _config.projects) {
+      auto it = _cxxProviders.find(name);
+      if (it != _cxxProviders.end() && it->second.isAvailable()) {
+        auto st = it->second.status();
+        projects[name] = {
+          {"loaded", true},
+          {"indexPath", it->second.indexPath()},
+          {"nodes", st.value("nodes", 0)},
+          {"edges", st.value("edges", 0)},
+          {"occurrences", st.value("occurrences", 0)},
+        };
+      } else {
+        projects[name] = {{"loaded", false}, {"indexPath", proj.cxxindex}};
+      }
+    }
+
     json result;
     result["active"]   = _config.symbolProvider;
     result["cxxidx"]   = {{"available", cxxidxOk}, {"version", cxxidxVer}};
     result["backends"] = backends;
+    result["projects"] = projects;
+    return graphResponse(result);
+  });
+
+  // ---- Load existing .cxxi index at runtime (no restart needed) ----
+
+  CROW_ROUTE(app, "/load-cxxindex").methods("POST"_method)
+  ([&](const crow::request& req) {
+    auto ctx       = extractParams(req);
+    auto indexPath = req.url_params.get("indexPath")
+                     ? std::string(req.url_params.get("indexPath")) : "";
+
+    if (ctx.project.empty())
+      return crow::response{400, "missing project parameter"};
+    if (indexPath.empty())
+      return crow::response{400, "missing indexPath parameter"};
+    if (!fileExists(indexPath))
+      return crow::response{404, "index file not found: " + indexPath};
+
+    // (Re-)create or replace the provider for this project
+    _cxxProviders.erase(ctx.project);
+    _cxxProviders.emplace(ctx.project, CxxIndexProvider(_config.cxxidx, indexPath));
+    auto& prov = _cxxProviders.at(ctx.project);
+
+    json result = prov.status();
+    result["loaded"]  = prov.isAvailable();
+    result["project"] = ctx.project;
+    fmt::print(fg(fmt::color::green),
+               "Loaded cxx-index [{}]: {} — nodes={} edges={} occs={}\n",
+               ctx.project, indexPath,
+               result.value("nodes", 0), result.value("edges", 0),
+               result.value("occurrences", 0));
     return graphResponse(result);
   });
 

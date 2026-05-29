@@ -214,6 +214,8 @@ Clique em **Annotate** no editor para ver o git blame. Cada linha mostra o hash 
 
 Clique em **Settings** no navbar do editor para abrir o modal de configurações.
 
+![Modal de configurações](images/settings_modal.png)
+
 **Seção Backend** mostra os três backends com badges de disponibilidade:
 
 - `available` (verde) — binário encontrado no PATH ou no caminho configurado
@@ -222,11 +224,25 @@ Clique em **Settings** no navbar do editor para abrir o modal de configurações
 
 > Para mudar o backend ativo, edite o `config.json` e reinicie o servidor.
 
-**Seção C++ Index** (visível quando `symbol-provider` é `cxxlsp`):
+**Seção C++ Index (Graph Navigation)** — sempre visível, independente do backend ativo:
 
-- Mostra o número de nós, arestas e ocorrências no índice atual
-- Botão **Re-index Now** — dispara o `cxxidx index` em background;
-  um log de progresso aparece; o botão fica desabilitado enquanto a indexação roda
+- Mostra se um índice está carregado e suas estatísticas (nós, arestas, ocorrências)
+- Campo **Index file (.cxxi)** — informe o caminho de um arquivo `.cxxi` existente
+- Botão **Load** — carrega o índice na memória imediatamente, **sem reiniciar o servidor**
+- Botão **Re-index Now** — dispara o `cxxidx index` em background quando um índice está carregado;
+  um log de progresso aparece
+
+### Carregando um índice existente em runtime
+
+Você pode usar a navegação por grafos (callers, callees, herança) sobre qualquer backend ativo (ctags ou clangd) carregando um índice pré-construído:
+
+1. Gere o índice com `cxxidx` (ver [seção 12](#12-grafos-c-com-cxxlsp))
+2. Abra **Settings**
+3. Informe o caminho do `.cxxi` no campo **Index file**
+4. Clique em **Load**
+5. As estatísticas aparecem imediatamente — o menu de contexto agora exibe as ações de grafo
+
+Não é necessário alterar o `config.json` nem reiniciar o servidor.
 
 ---
 
