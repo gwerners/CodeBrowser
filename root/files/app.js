@@ -133,7 +133,7 @@ async function navigateToSymbol(editor, identifierUrl, type, openInNewTab) {
 }
 
 // Register all editor actions (context menu items)
-function registerEditorActions(editor, monaco, identifierUrl, searchUrl, headerSourceUrl) {
+function registerEditorActions(editor, monaco, identifierUrl, searchUrl, headerSourceUrl, config) {
   // Ctrl+Click: go to definition (Shift+Ctrl+Click: declaration)
   editor.onMouseDown(async (event) => {
     const { event: { ctrlKey, shiftKey } } = event;
@@ -189,6 +189,43 @@ function registerEditorActions(editor, monaco, identifierUrl, searchUrl, headerS
     { id: 'cmd-type-definition', label: 'Go to Type Definition', order: 8, handler: () =>
       navigateToSymbol(editor, identifierUrl, 'typeDefinition', true)
     },
+
+    // ---- cxx-index graph actions (only registered when URLs are available) ----
+    ...(config && config.callersUrl ? [{
+      id: 'cmd-show-callers', label: 'Show Callers', order: 20, handler: () => {
+        const pos = editor.getPosition();
+        if (pos)
+          fetchAndShowGraph(config.callersUrl, pos.lineNumber, pos.column, 'Callers');
+      }
+    }] : []),
+    ...(config && config.calleesUrl ? [{
+      id: 'cmd-show-callees', label: 'Show Callees', order: 21, handler: () => {
+        const pos = editor.getPosition();
+        if (pos)
+          fetchAndShowGraph(config.calleesUrl, pos.lineNumber, pos.column, 'Callees');
+      }
+    }] : []),
+    ...(config && config.basesUrl ? [{
+      id: 'cmd-show-bases', label: 'Show Base Classes', order: 22, handler: () => {
+        const pos = editor.getPosition();
+        if (pos)
+          fetchAndShowGraph(config.basesUrl, pos.lineNumber, pos.column, 'Base Classes');
+      }
+    }] : []),
+    ...(config && config.derivedUrl ? [{
+      id: 'cmd-show-derived', label: 'Show Derived Classes', order: 23, handler: () => {
+        const pos = editor.getPosition();
+        if (pos)
+          fetchAndShowGraph(config.derivedUrl, pos.lineNumber, pos.column, 'Derived Classes');
+      }
+    }] : []),
+    ...(config && config.membersUrl ? [{
+      id: 'cmd-show-members', label: 'Show Members', order: 24, handler: () => {
+        const pos = editor.getPosition();
+        if (pos)
+          fetchAndShowGraph(config.membersUrl, pos.lineNumber, pos.column, 'Members');
+      }
+    }] : []),
   ];
 
   for (const action of actions) {
@@ -271,7 +308,7 @@ function initMonacoEditor(container, content, lang, lineNumber, config) {
     // Register actions if URLs are provided
     if (config.identifierUrl) {
       registerEditorActions(editor, monaco,
-        config.identifierUrl, config.searchUrl, config.headerSourceUrl);
+        config.identifierUrl, config.searchUrl, config.headerSourceUrl, config);
     }
 
     // Register hover provider if URL is provided

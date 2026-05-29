@@ -5,6 +5,8 @@
   <title>CodeBrowser Editor</title>
 <!--%lua%
 print("  <script src=\"" .. serverUrl .. "/files/app.js\"></script>\n")
+print("  <script src=\"" .. serverUrl .. "/files/cytoscape.min.js\"></script>\n")
+print("  <script src=\"" .. serverUrl .. "/files/graph.js\"></script>\n")
 print("  <link rel=\"stylesheet\" href=\"" .. serverUrl .. "/files/style.css\">\n")
 print("  <script src=\"" .. serverUrl .. "/monaco/min/vs/loader.js\"></script>\n")
 %lua%-->
@@ -43,6 +45,15 @@ print("            <li><a href=\"#\" onclick=\"toggleSymbolPanel(editorConfig.sy
       <div id="symbolPanel" style="display: none;"></div>
       <div id="symbolResizer" style="display: none;"></div>
       <div id="editor" style="flex: 1;"></div>
+      <div id="graphResizer" style="display: none;"></div>
+      <div id="graphPanel" style="display: none;">
+        <div class="graph-header">
+          <span class="graph-title">Graph</span>
+          <button class="graph-close" onclick="hideGraph()">&times;</button>
+        </div>
+        <div class="graph-canvas"></div>
+        <div class="graph-tooltip"></div>
+      </div>
     </div>
 
     <div id="footer">
@@ -64,6 +75,11 @@ print("      hoverUrl: '" .. serverUrl .. "/hover?project=" .. project .. "&path
 print("      searchUrl: '" .. serverUrl .. "/search?project=" .. project .. "&path=" .. path .. "',\n")
 print("      headerSourceUrl: '" .. serverUrl .. "/header_source?project=" .. project .. "&path=" .. path .. "',\n")
 print("      symbolsUrl: '" .. serverUrl .. "/symbols?project=" .. project .. "&path=" .. path .. "',\n")
+print("      callersUrl: '" .. serverUrl .. "/callers?project=" .. project .. "&path=" .. path .. "',\n")
+print("      calleesUrl: '" .. serverUrl .. "/callees?project=" .. project .. "&path=" .. path .. "',\n")
+print("      basesUrl:   '" .. serverUrl .. "/bases?project="   .. project .. "&path=" .. path .. "',\n")
+print("      derivedUrl: '" .. serverUrl .. "/derived?project=" .. project .. "&path=" .. path .. "',\n")
+print("      membersUrl: '" .. serverUrl .. "/members?project=" .. project .. "&path=" .. path .. "',\n")
 print("      lineNumber: " .. line .. ",\n")
 print("      lang: '" .. suffix .. "',\n")
 print("    };\n")
@@ -81,6 +97,11 @@ print("    };\n")
         );
       })
       .catch(error => console.error('Error loading file:', error));
+
+    initGraphPanel(
+      document.getElementById('graphPanel'),
+      document.getElementById('graphResizer')
+    );
   </script>
 </body>
 </html>

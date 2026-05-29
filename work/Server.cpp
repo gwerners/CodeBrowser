@@ -733,73 +733,108 @@ void Server::run() {
     return &it->second;
   };
 
-  CROW_ROUTE(app, "/callers")([&](const crow::request& req) {
-    auto ctx  = extractParams(req);
-    auto file = req.url_params.get("file") ? std::string(req.url_params.get("file")) : "";
-    int  line = req.url_params.get("line") ? std::stoi(req.url_params.get("line")) : 0;
-    int  col  = req.url_params.get("col")  ? std::stoi(req.url_params.get("col"))  : 0;
-    auto* prov = getCxxProvider(ctx.project);
-    json result = (prov && !file.empty()) ? prov->callers(file, line, col) : json::object();
+  // Enrich graph nodes with server-side navigation URLs.
+  // Converts absolute file paths stored in the index to /files?... URLs.
+  auto enrichGraph = [&](json& graph, const std::string& project) {
+    auto pit = _config.projects.find(project);
+    if (pit == _config.projects.end()) return;
+    const std::string& src = pit->second.source;
+
+    if (!graph.contains("nodes")) return;
+    for (auto& node : graph["nodes"]) {
+      if (!node.contains("file")) continue;
+      std::string absFile = node["file"];
+      std::string rel     = absFile;
+      if (absFile.rfind(src, 0) == 0) {
+        rel = absFile.substr(src.size());
+        if (!rel.empty() && rel[0] == '/') rel = rel.substr(1);
+      }
+      int l = node.value("line", 0);
+      node["url"] = fmt::format("{}/files?project={}&path={}&line={}",
+                                 _config.url, project, rel, l);
+    }
+  };
+
+  // Helper: parse path/line/col params and resolve to absolute path
+  auto resolveAbsPath = [&](const crow::request& req,
+                             const RequestContext& ctx) -> std::string {
+    auto p = req.url_params.get("path");
+    if (!p) return "";
+    auto pit = _config.projects.find(ctx.project);
+    if (pit == _config.projects.end()) return "";
+    return pit->second.source + "/" + std::string(p);
+  };
+
+  auto getLine = [](const crow::request& req) -> int {
+    auto v = req.url_params.get("line");
+    return v ? std::stoi(v) : 0;
+  };
+  auto getCol = [](const crow::request& req) -> int {
+    auto v = req.url_params.get("col");
+    return v ? std::stoi(v) : 0;
+  };
+
+  auto graphResponse = [](const json& result) {
     auto r = crow::response{result.dump()};
     r.add_header("Content-Type", "application/json");
     return r;
+  };
+
+  CROW_ROUTE(app, "/callers")([&](const crow::request& req) {
+    auto ctx  = extractParams(req);
+    auto abs  = resolveAbsPath(req, ctx);
+    auto* prov = getCxxProvider(ctx.project);
+    json result = (prov && !abs.empty()) ?
+        prov->callers(abs, getLine(req), getCol(req)) : json::object();
+    enrichGraph(result, ctx.project);
+    return graphResponse(result);
   });
 
   CROW_ROUTE(app, "/callees")([&](const crow::request& req) {
     auto ctx  = extractParams(req);
-    auto file = req.url_params.get("file") ? std::string(req.url_params.get("file")) : "";
-    int  line = req.url_params.get("line") ? std::stoi(req.url_params.get("line")) : 0;
-    int  col  = req.url_params.get("col")  ? std::stoi(req.url_params.get("col"))  : 0;
+    auto abs  = resolveAbsPath(req, ctx);
     auto* prov = getCxxProvider(ctx.project);
-    json result = (prov && !file.empty()) ? prov->callees(file, line, col) : json::object();
-    auto r = crow::response{result.dump()};
-    r.add_header("Content-Type", "application/json");
-    return r;
+    json result = (prov && !abs.empty()) ?
+        prov->callees(abs, getLine(req), getCol(req)) : json::object();
+    enrichGraph(result, ctx.project);
+    return graphResponse(result);
   });
 
   CROW_ROUTE(app, "/bases")([&](const crow::request& req) {
     auto ctx  = extractParams(req);
-    auto file = req.url_params.get("file") ? std::string(req.url_params.get("file")) : "";
-    int  line = req.url_params.get("line") ? std::stoi(req.url_params.get("line")) : 0;
-    int  col  = req.url_params.get("col")  ? std::stoi(req.url_params.get("col"))  : 0;
+    auto abs  = resolveAbsPath(req, ctx);
     auto* prov = getCxxProvider(ctx.project);
-    json result = (prov && !file.empty()) ? prov->bases(file, line, col) : json::object();
-    auto r = crow::response{result.dump()};
-    r.add_header("Content-Type", "application/json");
-    return r;
+    json result = (prov && !abs.empty()) ?
+        prov->bases(abs, getLine(req), getCol(req)) : json::object();
+    enrichGraph(result, ctx.project);
+    return graphResponse(result);
   });
 
   CROW_ROUTE(app, "/derived")([&](const crow::request& req) {
     auto ctx  = extractParams(req);
-    auto file = req.url_params.get("file") ? std::string(req.url_params.get("file")) : "";
-    int  line = req.url_params.get("line") ? std::stoi(req.url_params.get("line")) : 0;
-    int  col  = req.url_params.get("col")  ? std::stoi(req.url_params.get("col"))  : 0;
+    auto abs  = resolveAbsPath(req, ctx);
     auto* prov = getCxxProvider(ctx.project);
-    json result = (prov && !file.empty()) ? prov->derived(file, line, col) : json::object();
-    auto r = crow::response{result.dump()};
-    r.add_header("Content-Type", "application/json");
-    return r;
+    json result = (prov && !abs.empty()) ?
+        prov->derived(abs, getLine(req), getCol(req)) : json::object();
+    enrichGraph(result, ctx.project);
+    return graphResponse(result);
   });
 
   CROW_ROUTE(app, "/members")([&](const crow::request& req) {
     auto ctx  = extractParams(req);
-    auto file = req.url_params.get("file") ? std::string(req.url_params.get("file")) : "";
-    int  line = req.url_params.get("line") ? std::stoi(req.url_params.get("line")) : 0;
-    int  col  = req.url_params.get("col")  ? std::stoi(req.url_params.get("col"))  : 0;
+    auto abs  = resolveAbsPath(req, ctx);
     auto* prov = getCxxProvider(ctx.project);
-    json result = (prov && !file.empty()) ? prov->members(file, line, col) : json::object();
-    auto r = crow::response{result.dump()};
-    r.add_header("Content-Type", "application/json");
-    return r;
+    json result = (prov && !abs.empty()) ?
+        prov->members(abs, getLine(req), getCol(req)) : json::object();
+    enrichGraph(result, ctx.project);
+    return graphResponse(result);
   });
 
   CROW_ROUTE(app, "/index-status")([&](const crow::request& req) {
     auto ctx   = extractParams(req);
     auto* prov = getCxxProvider(ctx.project);
     json result = prov ? prov->status() : json{{"available", false}};
-    auto r = crow::response{result.dump()};
-    r.add_header("Content-Type", "application/json");
-    return r;
+    return graphResponse(result);
   });
 
   app.port(_config.port).multithreaded().run();

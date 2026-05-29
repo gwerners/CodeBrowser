@@ -496,6 +496,87 @@ a.sym-item:hover {
   color: red;
 }
 
+/* === Graph panel (right side, Cytoscape.js) === */
+
+#graphPanel {
+  width: 380px;
+  min-width: 180px;
+  max-width: 1000px;
+  flex-shrink: 0;
+  flex-direction: column;
+  background-color: var(--file-bg-even);
+  border-left: 1px solid var(--border);
+}
+
+.graph-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  font-weight: bold;
+  font-size: 13px;
+  background-color: var(--header-bg);
+  color: var(--header-text);
+  flex-shrink: 0;
+}
+
+.graph-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graph-close {
+  background: none;
+  border: none;
+  font-size: 1.4em;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0 4px;
+  line-height: 1;
+}
+.graph-close:hover { color: red; }
+
+.graph-canvas {
+  flex: 1;
+  min-height: 0;
+}
+
+.graph-tooltip {
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--text-faded);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+  min-height: 22px;
+  border-top: 1px solid var(--border);
+  font-family: monospace;
+}
+
+.graph-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-faded);
+  font-size: 13px;
+  padding: 20px;
+  text-align: center;
+}
+
+#graphResizer {
+  width: 6px;
+  cursor: col-resize;
+  background-color: var(--border);
+  flex-shrink: 0;
+}
+#graphResizer:hover, #graphResizer.dragging {
+  background-color: var(--accent);
+}
+
 /* === Footer === */
 #footer {
   color: var(--footer-text);
