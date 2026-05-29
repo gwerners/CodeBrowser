@@ -437,10 +437,8 @@ a.sym-item:hover {
 }
 
 #editor {
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  min-width: 0;   /* allow flex shrink when graph panel opens */
+  overflow: hidden;
 }
 
 /* === Overlay (references popup) === */

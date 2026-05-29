@@ -66,11 +66,17 @@ function showGraph(data, title) {
   _graphPanel.style.display = 'flex';
   if (_graphResizer) _graphResizer.style.display = 'block';
 
-  // Trigger Monaco relayout
+  // Trigger Monaco relayout so it shrinks to make room
   if (typeof _monacoEditorInstance !== 'undefined' && _monacoEditorInstance)
     _monacoEditorInstance.layout();
 
-  _renderCytoscape(data);
+  // Defer Cytoscape init until the flex layout has settled — otherwise the
+  // canvas reports 0×0 dimensions and nodes are rendered at wrong positions.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      _renderCytoscape(data);
+    });
+  });
 }
 
 function hideGraph() {
@@ -129,36 +135,35 @@ function _renderCytoscape(data) {
       {
         selector: 'node',
         style: {
-          'background-color': (ele) => _kindColor(ele.data('kind')),
-          'label':            'data(label)',
-          'text-valign':      'center',
-          'text-halign':      'center',
-          'color':            '#1e1e2e',
-          'font-size':        '11px',
-          'font-weight':      'bold',
-          'width':            'label',
-          'height':           'label',
-          'padding':          '8px',
-          'shape':            (ele) => ele.data('isCenter') ? 'round-rectangle' : 'ellipse',
-          'border-width':     (ele) => ele.data('isCenter') ? 3 : 1,
-          'border-color':     (ele) => ele.data('isCenter') ? '#f9e2af' : '#585b70',
+          'background-color':   (ele) => _kindColor(ele.data('kind')),
+          'label':              'data(label)',
+          'text-valign':        'center',
+          'text-halign':        'center',
+          'color':              '#1e1e2e',
+          'font-size':          '11px',
+          'font-weight':        'bold',
+          'width':              80,
+          'height':             32,
+          'shape':              (ele) => ele.data('isCenter') ? 'round-rectangle' : 'ellipse',
+          'border-width':       (ele) => ele.data('isCenter') ? 3 : 1,
+          'border-color':       (ele) => ele.data('isCenter') ? '#f9e2af' : '#585b70',
           'text-overflow-wrap': 'anywhere',
-          'text-max-width':   '120px',
+          'text-max-width':     '74px',
         }
       },
       {
         selector: 'edge',
         style: {
-          'width':                2,
-          'line-color':           '#585b70',
-          'target-arrow-color':   '#585b70',
-          'target-arrow-shape':   'triangle',
-          'curve-style':          'bezier',
-          'arrow-scale':          1.2,
+          'width':              2,
+          'line-color':         '#585b70',
+          'target-arrow-color': '#585b70',
+          'target-arrow-shape': 'triangle',
+          'curve-style':        'bezier',
+          'arrow-scale':        1.2,
         }
       },
       {
-        selector: 'node:hover',
+        selector: 'node.highlighted',
         style: { 'border-color': '#89b4fa', 'border-width': 2 }
       },
       {
@@ -196,7 +201,10 @@ function _renderCytoscape(data) {
     if (url) window.location.href = url;
   });
 
-  _cy.fit(undefined, 30); // 30px padding
+  // Resize + fit after a short delay to handle any remaining layout settling
+  _cy.resize();
+  _cy.fit(undefined, 30);
+  setTimeout(() => { if (_cy) { _cy.resize(); _cy.fit(undefined, 30); } }, 150);
 }
 
 // ---------------------------------------------------------------------------
