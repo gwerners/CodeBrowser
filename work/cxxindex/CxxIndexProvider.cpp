@@ -340,27 +340,57 @@ json CxxIndexProvider::parseMembersGraph(const std::string& output,
   std::string line;
   std::string currentKind;
   int nextId = 1;
+  bool firstLine = true;  // first line is "kind  ClassName" — skip it
 
   while (std::getline(ss, line)) {
-    // Header: "class  ClassName" or "struct  StructName" — skip
+    // Skip "kind  ClassName" header (first line of cxxidx members output)
+    if (firstLine) { firstLine = false; continue; }
+    // Skip "Members:" label
     if (line.rfind("Members:", 0) == 0) continue;
-    if (line.find("  [") != std::string::npos && line.find("]") != std::string::npos) {
-      // Kind group header "[method]", "[field]", etc.
+    // Skip "(none)" when class has no members
+    if (line.find("(none)") != std::string::npos) continue;
+    // Kind group header: "  [method]", "  [field]", etc.
+    if (line.find("  [") != std::string::npos && line.find(']') != std::string::npos) {
       auto lb = line.find('['), rb = line.find(']');
       if (lb != std::string::npos && rb != std::string::npos)
         currentKind = line.substr(lb + 1, rb - lb - 1);
       continue;
     }
-    // Member name line: "    FullyQualified::name"
+    if (line.empty()) continue;
+
+    // Member line: "    name  (/path:line:col)" or "    name"
     size_t start = line.find_first_not_of(" \t");
-    if (start == std::string::npos || line.empty()) continue;
-    std::string name = line.substr(start);
-    if (name.empty()) continue;
+    if (start == std::string::npos) continue;
+
+    std::string memberName;
+    std::string file;
+    int fileLine = 0, fileCol = 0;
+    bool hasLoc = false;
+
+    auto lp = line.rfind('(');
+    auto rp = line.rfind(')');
+    if (lp != std::string::npos && rp != std::string::npos && rp > lp) {
+      std::string locStr = line.substr(lp + 1, rp - lp - 1);
+      hasLoc = parseLocation(locStr, file, fileLine, fileCol);
+      std::string before = line.substr(start, lp - start);
+      auto endPos = before.find_last_not_of(" \t");
+      memberName = (endPos != std::string::npos) ? before.substr(0, endPos + 1) : before;
+    } else {
+      std::string raw = line.substr(start);
+      auto endPos = raw.find_last_not_of(" \t");
+      memberName = (endPos != std::string::npos) ? raw.substr(0, endPos + 1) : raw;
+    }
+
+    if (memberName.empty()) continue;
 
     json node;
     node["id"]   = nextId;
-    node["name"] = name;
+    node["name"] = memberName;
     node["kind"] = currentKind;
+    if (hasLoc) {
+      node["file"] = file;
+      node["line"] = fileLine;
+    }
     result["nodes"].push_back(node);
 
     json edge;

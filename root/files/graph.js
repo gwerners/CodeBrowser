@@ -142,13 +142,15 @@ function _renderCytoscape(data) {
           'color':              '#1e1e2e',
           'font-size':          '11px',
           'font-weight':        'bold',
-          'width':              80,
-          'height':             32,
+          // auto-size: ~7px per char, 20px padding, clamped to [80, 200]
+          'width':  (ele) => Math.max(80, Math.min(200, (ele.data('label')||'').length * 7 + 20)),
+          'height': 34,
           'shape':              (ele) => ele.data('isCenter') ? 'round-rectangle' : 'ellipse',
           'border-width':       (ele) => ele.data('isCenter') ? 3 : 1,
           'border-color':       (ele) => ele.data('isCenter') ? '#f9e2af' : '#585b70',
           'text-overflow-wrap': 'anywhere',
-          'text-max-width':     '74px',
+          'text-max-width':     (ele) => Math.max(72, Math.min(190, (ele.data('label')||'').length * 7 + 10)) + 'px',
+          'cursor':             'pointer',
         }
       },
       {
@@ -185,20 +187,33 @@ function _renderCytoscape(data) {
     wheelSensitivity: 0.3,
   });
 
-  // Single click → show info in tooltip
+  // Single click: navigate if URL exists, otherwise show tooltip
   _cy.on('tap', 'node', (evt) => {
-    const n = evt.target;
+    const n   = evt.target;
+    const url = n.data('url');
+    const tip = _graphPanel.querySelector('.graph-tooltip');
+
+    if (url) {
+      window.location.href = url;
+    } else {
+      // No URL (e.g. symbol from un-indexed system headers) — show info
+      if (tip) {
+        let msg = `${n.data('kind')}: ${n.data('fullName')}`;
+        if (n.data('file')) msg += `  (line ${n.data('line')})`;
+        msg += ' — no source location indexed';
+        tip.textContent = msg;
+      }
+    }
+  });
+
+  // Hover → show full name in tooltip (without navigating)
+  _cy.on('mouseover', 'node', (evt) => {
+    const n   = evt.target;
     const tip = _graphPanel.querySelector('.graph-tooltip');
     if (!tip) return;
     let msg = `${n.data('kind')}: ${n.data('fullName')}`;
-    if (n.data('file')) msg += `  (line ${n.data('line')})`;
+    if (n.data('file')) msg += `  → line ${n.data('line')}`;
     tip.textContent = msg;
-  });
-
-  // Double-click → navigate browser to the file
-  _cy.on('dblclick', 'node', (evt) => {
-    const url = evt.target.data('url');
-    if (url) window.location.href = url;
   });
 
   // Resize + fit after a short delay to handle any remaining layout settling
